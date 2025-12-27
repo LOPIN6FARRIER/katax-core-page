@@ -1,5 +1,5 @@
 {
-  "name": "katax-core-page",
+  "name": "katax-core-docs",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -9,6 +9,9 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.16.6"
+    "@tailwindcss/vite": "^4.1.18",
+    "@vercel/analytics": "^1.6.1",
+    "astro": "^5.16.6",
+    "tailwindcss": "^4.1.18"
   }
 }
