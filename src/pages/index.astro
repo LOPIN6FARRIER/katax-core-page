@@ -1,36 +1,61 @@
 ---
-import '../styles/global.css';
-import Analytics from '@vercel/analytics/astro'
+import "../styles/global.css";
+import Analytics from "@vercel/analytics/astro";
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Katax Ecosystem - Complete Node.js development toolkit: validation, service management, and CLI scaffolding" />
-    <meta name="keywords" content="validation, schema, typescript, type-safe, validator, service-manager, cli, node.js, express, api" />
+    <meta
+      name="description"
+      content="Katax Ecosystem - Complete Node.js development toolkit: validation, service management, and CLI scaffolding"
+    />
+    <meta
+      name="keywords"
+      content="validation, schema, typescript, type-safe, validator, service-manager, cli, node.js, express, api"
+    />
     <meta name="author" content="Vinicio Esparza" />
     <title>Katax Ecosystem - Node.js Development Toolkit</title>
     <link rel="icon" type="image/svg+xml" href="/images/logo.svg" />
     <link rel="apple-touch-icon" href="/images/logo.svg" />
   </head>
-  <body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+  <body
+    class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white"
+  >
     <!-- Header/Nav -->
-    <nav class="fixed top-0 w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50 z-50">
+    <nav
+      class="fixed top-0 w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50 z-50"
+    >
       <div class="container mx-auto px-4 py-4">
         <div class="flex justify-between items-center">
           <div class="flex items-center space-x-3">
             <img src="/images/logo.svg" alt="Katax Logo" class="w-10 h-10" />
-            <span class="text-2xl font-bold text-white">
-              Katax Ecosystem
-            </span>
+            <span class="text-2xl font-bold text-white"> Katax Ecosystem </span>
           </div>
           <div class="flex space-x-4">
-            <a href="#projects" class="hover:text-cyan-400 transition-colors hidden md:block">Projects</a>
-            <a href="#skill" class="hover:text-cyan-400 transition-colors hidden md:block">AI Skill</a>
-            <a href="#examples" class="hover:text-cyan-400 transition-colors hidden md:block">Examples</a>
-            <a href="https://github.com/LOPIN6FARRIER" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors">
+            <a
+              href="#projects"
+              class="hover:text-cyan-400 transition-colors hidden md:block"
+              >Projects</a
+            >
+            <a
+              href="#skill"
+              class="hover:text-cyan-400 transition-colors hidden md:block"
+              >AI Skill</a
+            >
+            <a
+              href="#examples"
+              class="hover:text-cyan-400 transition-colors hidden md:block"
+              >Examples</a
+            >
+            <a
+              href="https://github.com/LOPIN6FARRIER"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hover:text-cyan-400 transition-colors"
+            >
               GitHub
             </a>
           </div>
@@ -42,40 +67,63 @@ import Analytics from '@vercel/analytics/astro'
     <section class="pt-32 pb-20 px-4">
       <div class="container mx-auto text-center">
         <div class="inline-block mb-4">
-          <span class="px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 rounded-full text-sm font-semibold">
+          <span
+            class="px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 rounded-full text-sm font-semibold"
+          >
             Complete Node.js Development Toolkit
           </span>
         </div>
-        <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+        <h1
+          class="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 bg-clip-text text-transparent"
+        >
           Katax Ecosystem
         </h1>
         <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
-          Build production-ready APIs with type-safe validation, service management, and CLI scaffolding
+          Build production-ready APIs with type-safe validation, service
+          management, and CLI scaffolding
         </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <a href="#projects" class="px-8 py-4 bg-gradient-to-r from-cyan-600 to-pink-600 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg shadow-cyan-500/50">
+        <div
+          class="flex flex-col sm:flex-row gap-4 justify-center items-center"
+        >
+          <a
+            href="#projects"
+            class="px-8 py-4 bg-gradient-to-r from-cyan-600 to-pink-600 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg shadow-cyan-500/50"
+          >
             Explore Projects
           </a>
-          <a href="#skill" class="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg shadow-purple-500/50">
+          <a
+            href="#skill"
+            class="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg shadow-purple-500/50"
+          >
             Get AI Skill
           </a>
         </div>
 
         <!-- Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto">
-          <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6">
+        <div
+          class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto"
+        >
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6"
+          >
             <div class="text-3xl font-bold text-cyan-400">3</div>
             <div class="text-sm text-gray-400 mt-1">Packages</div>
           </div>
-          <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6">
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6"
+          >
             <div class="text-3xl font-bold text-pink-400">100%</div>
             <div class="text-sm text-gray-400 mt-1">TypeScript</div>
           </div>
-          <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6">
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6"
+          >
             <div class="text-3xl font-bold text-purple-400">MIT</div>
             <div class="text-sm text-gray-400 mt-1">License</div>
           </div>
-          <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6">
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6"
+          >
             <div class="text-3xl font-bold text-cyan-400">ESM</div>
             <div class="text-sm text-gray-400 mt-1">Modern</div>
           </div>
@@ -86,24 +134,42 @@ import Analytics from '@vercel/analytics/astro'
     <!-- Projects Section -->
     <section id="projects" class="py-20 px-4 bg-slate-800/30">
       <div class="container mx-auto">
-        <h2 class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent"
+        >
           Ecosystem Projects
         </h2>
-        
+
         <!-- Katax Core -->
         <div class="max-w-5xl mx-auto mb-12">
-          <div class="bg-slate-900/50 backdrop-blur-sm border border-cyan-500/50 rounded-xl overflow-hidden">
-            <div class="bg-gradient-to-r from-cyan-600/20 to-pink-600/20 px-8 py-6 border-b border-slate-700/50">
+          <div
+            class="bg-slate-900/50 backdrop-blur-sm border border-cyan-500/50 rounded-xl overflow-hidden"
+          >
+            <div
+              class="bg-gradient-to-r from-cyan-600/20 to-pink-600/20 px-8 py-6 border-b border-slate-700/50"
+            >
               <div class="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <h3 class="text-3xl font-bold text-cyan-400 mb-2">katax-core</h3>
-                  <p class="text-gray-300">Schema validation library for TypeScript/JavaScript</p>
+                  <h3 class="text-3xl font-bold text-cyan-400 mb-2">
+                    katax-core
+                  </h3>
+                  <p class="text-gray-300">
+                    Schema validation library for TypeScript/JavaScript
+                  </p>
                 </div>
                 <div class="flex gap-3">
-                  <a href="https://www.npmjs.com/package/katax-core" target="_blank" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-sm font-semibold transition-colors">
+                  <a
+                    href="https://www.npmjs.com/package/katax-core"
+                    target="_blank"
+                    class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-sm font-semibold transition-colors"
+                  >
                     NPM
                   </a>
-                  <a href="https://github.com/LOPIN6FARRIER/katax-core" target="_blank" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors">
+                  <a
+                    href="https://github.com/LOPIN6FARRIER/katax-core"
+                    target="_blank"
+                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors"
+                  >
                     GitHub
                   </a>
                 </div>
@@ -112,7 +178,9 @@ import Analytics from '@vercel/analytics/astro'
             <div class="p-8">
               <div class="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <h4 class="text-sm font-semibold text-cyan-400 mb-3">Features</h4>
+                  <h4 class="text-sm font-semibold text-cyan-400 mb-3">
+                    Features
+                  </h4>
                   <ul class="space-y-2 text-sm text-gray-300">
                     <li>✓ Full TypeScript type inference</li>
                     <li>✓ Async validation support</li>
@@ -122,9 +190,13 @@ import Analytics from '@vercel/analytics/astro'
                   </ul>
                 </div>
                 <div>
-                  <h4 class="text-sm font-semibold text-cyan-400 mb-3">Installation</h4>
+                  <h4 class="text-sm font-semibold text-cyan-400 mb-3">
+                    Installation
+                  </h4>
                   <div class="bg-slate-950/50 rounded-lg p-3">
-                    <code class="text-sm text-cyan-300">npm install katax-core</code>
+                    <code class="text-sm text-cyan-300"
+                      >npm install katax-core</code
+                    >
                   </div>
                   <div class="mt-3 text-sm text-gray-400">
                     <span class="font-semibold">Version:</span> 1.5.3
@@ -137,18 +209,34 @@ import Analytics from '@vercel/analytics/astro'
 
         <!-- Katax Service Manager -->
         <div class="max-w-5xl mx-auto mb-12">
-          <div class="bg-slate-900/50 backdrop-blur-sm border border-pink-500/50 rounded-xl overflow-hidden">
-            <div class="bg-gradient-to-r from-pink-600/20 to-purple-600/20 px-8 py-6 border-b border-slate-700/50">
+          <div
+            class="bg-slate-900/50 backdrop-blur-sm border border-pink-500/50 rounded-xl overflow-hidden"
+          >
+            <div
+              class="bg-gradient-to-r from-pink-600/20 to-purple-600/20 px-8 py-6 border-b border-slate-700/50"
+            >
               <div class="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <h3 class="text-3xl font-bold text-pink-400 mb-2">katax-service-manager</h3>
-                  <p class="text-gray-300">Runtime service container for Node.js applications</p>
+                  <h3 class="text-3xl font-bold text-pink-400 mb-2">
+                    katax-service-manager
+                  </h3>
+                  <p class="text-gray-300">
+                    Runtime service container for Node.js applications
+                  </p>
                 </div>
                 <div class="flex gap-3">
-                  <a href="https://www.npmjs.com/package/katax-service-manager" target="_blank" class="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg text-sm font-semibold transition-colors">
+                  <a
+                    href="https://www.npmjs.com/package/katax-service-manager"
+                    target="_blank"
+                    class="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg text-sm font-semibold transition-colors"
+                  >
                     NPM
                   </a>
-                  <a href="https://github.com/LOPIN6FARRIER/katax-service-manager" target="_blank" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors">
+                  <a
+                    href="https://github.com/LOPIN6FARRIER/katax-service-manager"
+                    target="_blank"
+                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors"
+                  >
                     GitHub
                   </a>
                 </div>
@@ -157,20 +245,31 @@ import Analytics from '@vercel/analytics/astro'
             <div class="p-8">
               <div class="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <h4 class="text-sm font-semibold text-pink-400 mb-3">Features</h4>
+                  <h4 class="text-sm font-semibold text-pink-400 mb-3">
+                    Features
+                  </h4>
                   <ul class="space-y-2 text-sm text-gray-300">
                     <li>✓ Singleton service container</li>
                     <li>✓ Auto .env loading</li>
-                    <li>✓ Logger with custom transports (Redis, Telegram, Callback)</li>
-                    <li>✓ Database connection pools (PostgreSQL, MySQL, MongoDB)</li>
+                    <li>
+                      ✓ Logger with custom transports (Redis, Telegram,
+                      Callback)
+                    </li>
+                    <li>
+                      ✓ Database connection pools (PostgreSQL, MySQL, MongoDB)
+                    </li>
                     <li>✓ WebSocket & Cron services</li>
                     <li>✓ Graceful shutdown handling</li>
                   </ul>
                 </div>
                 <div>
-                  <h4 class="text-sm font-semibold text-pink-400 mb-3">Installation</h4>
+                  <h4 class="text-sm font-semibold text-pink-400 mb-3">
+                    Installation
+                  </h4>
                   <div class="bg-slate-950/50 rounded-lg p-3">
-                    <code class="text-sm text-pink-300">npm install katax-service-manager</code>
+                    <code class="text-sm text-pink-300"
+                      >npm install katax-service-manager</code
+                    >
                   </div>
                   <div class="mt-3 text-sm text-gray-400">
                     <span class="font-semibold">Version:</span> 0.5.0
@@ -183,18 +282,34 @@ import Analytics from '@vercel/analytics/astro'
 
         <!-- Katax CLI -->
         <div class="max-w-5xl mx-auto">
-          <div class="bg-slate-900/50 backdrop-blur-sm border border-purple-500/50 rounded-xl overflow-hidden">
-            <div class="bg-gradient-to-r from-purple-600/20 to-cyan-600/20 px-8 py-6 border-b border-slate-700/50">
+          <div
+            class="bg-slate-900/50 backdrop-blur-sm border border-purple-500/50 rounded-xl overflow-hidden"
+          >
+            <div
+              class="bg-gradient-to-r from-purple-600/20 to-cyan-600/20 px-8 py-6 border-b border-slate-700/50"
+            >
               <div class="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <h3 class="text-3xl font-bold text-purple-400 mb-2">katax-cli</h3>
-                  <p class="text-gray-300">CLI scaffolding tool for Express APIs with TypeScript</p>
+                  <h3 class="text-3xl font-bold text-purple-400 mb-2">
+                    katax-cli
+                  </h3>
+                  <p class="text-gray-300">
+                    CLI scaffolding tool for Express APIs with TypeScript
+                  </p>
                 </div>
                 <div class="flex gap-3">
-                  <a href="https://www.npmjs.com/package/katax-cli" target="_blank" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold transition-colors">
+                  <a
+                    href="https://www.npmjs.com/package/katax-cli"
+                    target="_blank"
+                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold transition-colors"
+                  >
                     NPM
                   </a>
-                  <a href="https://github.com/LOPIN6FARRIER/katax-cli" target="_blank" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors">
+                  <a
+                    href="https://github.com/LOPIN6FARRIER/katax-cli"
+                    target="_blank"
+                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors"
+                  >
                     GitHub
                   </a>
                 </div>
@@ -203,20 +318,28 @@ import Analytics from '@vercel/analytics/astro'
             <div class="p-8">
               <div class="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <h4 class="text-sm font-semibold text-purple-400 mb-3">Features</h4>
+                  <h4 class="text-sm font-semibold text-purple-400 mb-3">
+                    Features
+                  </h4>
                   <ul class="space-y-2 text-sm text-gray-300">
                     <li>✓ Project scaffolding with Express + TypeScript</li>
                     <li>✓ Generate endpoints, CRUD operations, docs</li>
                     <li>✓ Built-in auth & stream utilities</li>
                     <li>✓ Database support (PostgreSQL, MySQL, MongoDB)</li>
-                    <li>✓ Auto-integration with katax-core & katax-service-manager</li>
+                    <li>
+                      ✓ Auto-integration with katax-core & katax-service-manager
+                    </li>
                     <li>✓ Production-ready templates</li>
                   </ul>
                 </div>
                 <div>
-                  <h4 class="text-sm font-semibold text-purple-400 mb-3">Installation</h4>
+                  <h4 class="text-sm font-semibold text-purple-400 mb-3">
+                    Installation
+                  </h4>
                   <div class="bg-slate-950/50 rounded-lg p-3">
-                    <code class="text-sm text-purple-300">npm install -g katax-cli</code>
+                    <code class="text-sm text-purple-300"
+                      >npm install -g katax-cli</code
+                    >
                   </div>
                   <div class="mt-3 text-sm text-gray-400">
                     <span class="font-semibold">Version:</span> 1.4.1
@@ -232,45 +355,97 @@ import Analytics from '@vercel/analytics/astro'
     <!-- AI Skill Section -->
     <section id="skill" class="py-20 px-4">
       <div class="container mx-auto max-w-5xl">
-        <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-8 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent"
+        >
           GitHub Copilot Skill
         </h2>
         <p class="text-center text-gray-300 mb-12 max-w-3xl mx-auto">
-          Get expert guidance for the entire Katax ecosystem directly in VS Code with our custom GitHub Copilot skill.
+          Get expert guidance for the entire Katax ecosystem directly in VS Code
+          with our custom GitHub Copilot skill.
         </p>
 
-        <div class="bg-gradient-to-br from-purple-900/30 to-cyan-900/30 backdrop-blur-sm border border-purple-500/50 rounded-xl p-8">
+        <div
+          class="bg-gradient-to-br from-purple-900/30 to-cyan-900/30 backdrop-blur-sm border border-purple-500/50 rounded-xl p-8"
+        >
           <div class="grid md:grid-cols-2 gap-8 mb-8">
             <div>
-              <h3 class="text-2xl font-bold text-purple-400 mb-4">What You Get</h3>
+              <h3 class="text-2xl font-bold text-purple-400 mb-4">
+                What You Get
+              </h3>
               <ul class="space-y-3 text-gray-300">
                 <li class="flex items-start gap-2">
-                  <svg class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  <svg
+                    class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                   <span>Expert guidance for all 3 Katax packages</span>
                 </li>
                 <li class="flex items-start gap-2">
-                  <svg class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  <svg
+                    class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                   <span>Bootstrap & service configuration examples</span>
                 </li>
                 <li class="flex items-start gap-2">
-                  <svg class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  <svg
+                    class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                   <span>Validation patterns & best practices</span>
                 </li>
                 <li class="flex items-start gap-2">
-                  <svg class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  <svg
+                    class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                   <span>Database, WebSocket, cron setup guides</span>
                 </li>
                 <li class="flex items-start gap-2">
-                  <svg class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  <svg
+                    class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                   <span>Troubleshooting common issues</span>
                 </li>
@@ -278,44 +453,78 @@ import Analytics from '@vercel/analytics/astro'
             </div>
 
             <div>
-              <h3 class="text-2xl font-bold text-purple-400 mb-4">How to Install</h3>
+              <h3 class="text-2xl font-bold text-purple-400 mb-4">
+                How to Install
+              </h3>
               <div class="space-y-4 text-gray-300">
                 <div class="flex items-start gap-3">
-                  <span class="flex-shrink-0 w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center text-sm font-bold text-purple-400">1</span>
-                  <p>Download the <code class="text-purple-300 bg-slate-950/50 px-2 py-0.5 rounded">SKILL.md</code> file from the button below</p>
+                  <span
+                    class="flex-shrink-0 w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center text-sm font-bold text-purple-400"
+                    >1</span
+                  >
+                  <p>
+                    Download the <code
+                      class="text-purple-300 bg-slate-950/50 px-2 py-0.5 rounded"
+                      >SKILL.md</code
+                    > file from the button below
+                  </p>
                 </div>
                 <div class="flex items-start gap-3">
-                  <span class="flex-shrink-0 w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center text-sm font-bold text-purple-400">2</span>
-                  <p>Place it in <code class="text-purple-300 bg-slate-950/50 px-2 py-0.5 rounded">~/.claude/skills/katax-ecosystem/</code> (Claude Desktop) or your Copilot skills folder</p>
+                  <span
+                    class="flex-shrink-0 w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center text-sm font-bold text-purple-400"
+                    >2</span
+                  >
+                  <p>
+                    Place it in <code
+                      class="text-purple-300 bg-slate-950/50 px-2 py-0.5 rounded"
+                      >~/.claude/skills/katax-ecosystem/</code
+                    > (Claude Desktop) or your Copilot skills folder
+                  </p>
                 </div>
                 <div class="flex items-start gap-3">
-                  <span class="flex-shrink-0 w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center text-sm font-bold text-purple-400">3</span>
-                  <p>Restart VS Code and invoke with <span class="text-purple-300 font-semibold">@katax-ecosystem</span></p>
+                  <span
+                    class="flex-shrink-0 w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center text-sm font-bold text-purple-400"
+                    >3</span
+                  >
+                  <p>
+                    Restart VS Code and invoke with <span
+                      class="text-purple-300 font-semibold"
+                      >@katax-ecosystem</span>
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="flex flex-col sm:flex-row gap-4 justify-center pt-6 border-t border-purple-500/30">
-            <a href="https://raw.githubusercontent.com/LOPIN6FARRIER/katax-service-manager/main/.github/skills/katax-ecosystem/SKILL.md" 
-               download="SKILL.md"
-               class="px-8 py-4 bg-gradient-to-r from-purple-600 to-cyan-600 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg shadow-purple-500/50 text-center">
+          <div
+            class="flex flex-col sm:flex-row gap-4 justify-center pt-6 border-t border-purple-500/30"
+          >
+            <a
+              href="https://raw.githubusercontent.com/LOPIN6FARRIER/katax-service-manager/main/.github/skills/katax-ecosystem/SKILL.md"
+              download="SKILL.md"
+              class="px-8 py-4 bg-gradient-to-r from-purple-600 to-cyan-600 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg shadow-purple-500/50 text-center"
+            >
               Download SKILL.md
             </a>
-            <a href="https://github.com/LOPIN6FARRIER/katax-service-manager/tree/main/.github/skills/katax-ecosystem" 
-               target="_blank"
-               class="px-8 py-4 bg-slate-800 border border-slate-700/50 rounded-lg font-semibold hover:bg-slate-700 transition-colors text-center">
+            <a
+              href="https://github.com/LOPIN6FARRIER/katax-service-manager/tree/main/.github/skills/katax-ecosystem"
+              target="_blank"
+              class="px-8 py-4 bg-slate-800 border border-slate-700/50 rounded-lg font-semibold hover:bg-slate-700 transition-colors text-center"
+            >
               View on GitHub
             </a>
           </div>
         </div>
 
         <!-- Skill Example -->
-        <div class="mt-12 bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden">
+        <div
+          class="mt-12 bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden"
+        >
           <div class="bg-purple-900/20 px-6 py-3 border-b border-purple-500/30">
             <span class="text-sm text-gray-400">Example Usage</span>
           </div>
-          <pre class="p-6 overflow-x-auto text-sm text-gray-300"><code>{`// In VS Code with GitHub Copilot
+          <pre
+            class="p-6 overflow-x-auto text-sm text-gray-300"><code>{`// In VS Code with GitHub Copilot
 // Type: @katax-ecosystem how do I set up Redis logging?
 
 // The skill provides context-aware guidance:
@@ -342,13 +551,17 @@ await Katax.getInstance().init({
     <!-- Installation Section -->
     <section id="installation" class="py-20 px-4 bg-slate-800/30">
       <div class="container mx-auto max-w-4xl">
-        <h2 class="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent"
+        >
           Quick Start
         </h2>
-        
+
         <div class="grid md:grid-cols-3 gap-6">
           <!-- Katax Core -->
-          <div class="bg-slate-900/50 border border-cyan-500/50 rounded-xl p-6 backdrop-blur-sm">
+          <div
+            class="bg-slate-900/50 border border-cyan-500/50 rounded-xl p-6 backdrop-blur-sm"
+          >
             <h3 class="text-lg font-bold text-cyan-400 mb-4">Validation</h3>
             <div class="bg-slate-950 rounded-lg p-3 mb-3">
               <code class="text-xs text-cyan-300">npm install katax-core</code>
@@ -357,30 +570,43 @@ await Katax.getInstance().init({
           </div>
 
           <!-- Katax Service Manager -->
-          <div class="bg-slate-900/50 border border-pink-500/50 rounded-xl p-6 backdrop-blur-sm">
+          <div
+            class="bg-slate-900/50 border border-pink-500/50 rounded-xl p-6 backdrop-blur-sm"
+          >
             <h3 class="text-lg font-bold text-pink-400 mb-4">Services</h3>
             <div class="bg-slate-950 rounded-lg p-3 mb-3">
-              <code class="text-xs text-pink-300">npm install katax-service-manager</code>
+              <code class="text-xs text-pink-300"
+                >npm install katax-service-manager</code
+              >
             </div>
             <p class="text-sm text-gray-400">Runtime service container</p>
           </div>
 
           <!-- Katax CLI -->
-          <div class="bg-slate-900/50 border border-purple-500/50 rounded-xl p-6 backdrop-blur-sm">
+          <div
+            class="bg-slate-900/50 border border-purple-500/50 rounded-xl p-6 backdrop-blur-sm"
+          >
             <h3 class="text-lg font-bold text-purple-400 mb-4">Scaffolding</h3>
             <div class="bg-slate-950 rounded-lg p-3 mb-3">
-              <code class="text-xs text-purple-300">npm install -g katax-cli</code>
+              <code class="text-xs text-purple-300"
+                >npm install -g katax-cli</code
+              >
             </div>
             <p class="text-sm text-gray-400">Project generator tool</p>
           </div>
         </div>
 
         <!-- Full Setup Example -->
-        <div class="mt-12 bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden">
-          <div class="bg-gradient-to-r from-cyan-900/20 via-pink-900/20 to-purple-900/20 px-6 py-3 border-b border-slate-700/50">
+        <div
+          class="mt-12 bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden"
+        >
+          <div
+            class="bg-gradient-to-r from-cyan-900/20 via-pink-900/20 to-purple-900/20 px-6 py-3 border-b border-slate-700/50"
+          >
             <span class="text-sm text-gray-400">Complete Setup with CLI</span>
           </div>
-          <pre class="p-6 overflow-x-auto"><code class="text-sm">{`# Install CLI globally
+          <pre
+            class="p-6 overflow-x-auto"><code class="text-sm">{`# Install CLI globally
 npm install -g katax-cli
 
 # Create new API project
@@ -398,7 +624,9 @@ npm run dev`}</code></pre>
     <!-- Examples Section -->
     <section id="examples" class="py-20 px-4">
       <div class="container mx-auto max-w-6xl">
-        <h2 class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent"
+        >
           Quick Examples
         </h2>
 
@@ -407,11 +635,16 @@ npm run dev`}</code></pre>
           <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
             <span class="text-cyan-400">01.</span> katax-core - Request Validation
           </h3>
-          <div class="bg-slate-900/50 border border-cyan-700/50 rounded-xl overflow-hidden backdrop-blur-sm">
+          <div
+            class="bg-slate-900/50 border border-cyan-700/50 rounded-xl overflow-hidden backdrop-blur-sm"
+          >
             <div class="bg-cyan-900/20 px-6 py-3 border-b border-cyan-700/50">
-              <span class="text-sm text-gray-400">TypeScript - Schema Validation</span>
+              <span class="text-sm text-gray-400"
+                >TypeScript - Schema Validation</span
+              >
             </div>
-            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`import { k, type kataxInfer } from 'katax-core';
+            <pre
+              class="p-6 overflow-x-auto"><code class="text-sm">{`import { k, type kataxInfer } from 'katax-core';
 
 const createUserSchema = k.object({
   name: k.string().minLength(2).maxLength(100),
@@ -444,13 +677,19 @@ export async function createUser(req: Request, res: Response) {
         <!-- Katax Service Manager - Bootstrap Example -->
         <div class="mb-12">
           <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
-            <span class="text-pink-400">02.</span> katax-service-manager - Bootstrap Setup
+            <span class="text-pink-400">02.</span> katax-service-manager - Bootstrap
+            Setup
           </h3>
-          <div class="bg-slate-900/50 border border-pink-700/50 rounded-xl overflow-hidden backdrop-blur-sm">
+          <div
+            class="bg-slate-900/50 border border-pink-700/50 rounded-xl overflow-hidden backdrop-blur-sm"
+          >
             <div class="bg-pink-900/20 px-6 py-3 border-b border-pink-700/50">
-              <span class="text-sm text-gray-400">TypeScript - Service Container</span>
+              <span class="text-sm text-gray-400"
+                >TypeScript - Service Container</span
+              >
             </div>
-            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`import { Katax } from 'katax-service-manager';
+            <pre
+              class="p-6 overflow-x-auto"><code class="text-sm">{`import { Katax } from 'katax-service-manager';
 
 // Initialize once at app startup
 await Katax.getInstance().init({
@@ -496,11 +735,16 @@ katax.onShutdown(async () => {
           <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
             <span class="text-purple-400">03.</span> katax-cli - Generate Full API
           </h3>
-          <div class="bg-slate-900/50 border border-purple-700/50 rounded-xl overflow-hidden backdrop-blur-sm">
-            <div class="bg-purple-900/20 px-6 py-3 border-b border-purple-700/50">
+          <div
+            class="bg-slate-900/50 border border-purple-700/50 rounded-xl overflow-hidden backdrop-blur-sm"
+          >
+            <div
+              class="bg-purple-900/20 px-6 py-3 border-b border-purple-700/50"
+            >
               <span class="text-sm text-gray-400">Bash - CLI Commands</span>
             </div>
-            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`# Install CLI globally
+            <pre
+              class="p-6 overflow-x-auto"><code class="text-sm">{`# Install CLI globally
 npm install -g katax-cli
 
 # Create new project with interactive prompts
@@ -537,11 +781,18 @@ npm run dev
           <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
             <span class="text-cyan-400">04.</span> Complete Endpoint (All 3 Packages)
           </h3>
-          <div class="bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden backdrop-blur-sm">
-            <div class="bg-gradient-to-r from-cyan-900/20 via-pink-900/20 to-purple-900/20 px-6 py-3 border-b border-slate-700/50">
-              <span class="text-sm text-gray-400">TypeScript - Handler with Validation & Services</span>
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden backdrop-blur-sm"
+          >
+            <div
+              class="bg-gradient-to-r from-cyan-900/20 via-pink-900/20 to-purple-900/20 px-6 py-3 border-b border-slate-700/50"
+            >
+              <span class="text-sm text-gray-400"
+                >TypeScript - Handler with Validation & Services</span
+              >
             </div>
-            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`import { Request, Response } from 'express';
+            <pre
+              class="p-6 overflow-x-auto"><code class="text-sm">{`import { Request, Response } from 'express';
 import { k, type kataxInfer } from 'katax-core';
 import { Katax } from 'katax-service-manager';
 
@@ -592,52 +843,72 @@ export async function createProduct(req: Request, res: Response) {
     <!-- Schema Types Overview -->
     <section class="py-20 px-4 bg-slate-800/30">
       <div class="container mx-auto max-w-5xl">
-        <h2 class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent"
+        >
           Available Schemas
         </h2>
         <div class="grid md:grid-cols-2 gap-6">
-          <div class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm">
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
             <h4 class="text-lg font-bold text-cyan-400 mb-3">String Schema</h4>
-            <pre class="text-sm text-gray-300"><code>k.string()
+            <pre
+              class="text-sm text-gray-300"><code>k.string()
   .minLength(3)
   .maxLength(50)
   .email()
   .url()
   .regex(/^[a-zA-Z]+$/)</code></pre>
           </div>
-          <div class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm">
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
             <h4 class="text-lg font-bold text-pink-400 mb-3">Number Schema</h4>
-            <pre class="text-sm text-gray-300"><code>k.number()
+            <pre
+              class="text-sm text-gray-300"><code>k.number()
   .min(0)
   .max(100)
   .positive()
   .integer()</code></pre>
           </div>
-          <div class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm">
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
             <h4 class="text-lg font-bold text-cyan-400 mb-3">Date Schema</h4>
-            <pre class="text-sm text-gray-300"><code>k.date()
+            <pre
+              class="text-sm text-gray-300"><code>k.date()
   .min('2024-01-01')
   .max('2024-12-31')
   .isFuture()
   .isPast()</code></pre>
           </div>
-          <div class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm">
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
             <h4 class="text-lg font-bold text-pink-400 mb-3">Email Schema</h4>
-            <pre class="text-sm text-gray-300"><code>k.email()
+            <pre
+              class="text-sm text-gray-300"><code>k.email()
   .domain('company.com')
   .corporate()
   .noPlus()</code></pre>
           </div>
-          <div class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm">
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
             <h4 class="text-lg font-bold text-cyan-400 mb-3">Array Schema</h4>
-            <pre class="text-sm text-gray-300"><code>k.array(k.string())
+            <pre
+              class="text-sm text-gray-300"><code>k.array(k.string())
   .minLength(1)
   .maxLength(10)
   .unique()</code></pre>
           </div>
-          <div class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm">
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
             <h4 class="text-lg font-bold text-pink-400 mb-3">File Schema</h4>
-            <pre class="text-sm text-gray-300"><code>k.file()
+            <pre
+              class="text-sm text-gray-300"><code>k.file()
   .image()
   .maxSize(5 * 1024 * 1024)
   .extensions(['.jpg'])</code></pre>
@@ -649,34 +920,79 @@ export async function createProduct(req: Request, res: Response) {
     <!-- Resources Section -->
     <section class="py-20 px-4">
       <div class="container mx-auto max-w-4xl">
-        <h2 class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent"
+        >
           Resources
         </h2>
         <div class="grid md:grid-cols-3 gap-6">
-          <a href="https://github.com/LOPIN6FARRIER/katax-core" target="_blank" rel="noopener noreferrer" class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-8 hover:border-cyan-500/50 transition-all hover:scale-105 text-center group backdrop-blur-sm">
-            <div class="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-500/30 transition-colors">
-              <svg class="w-8 h-8 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          <a
+            href="https://github.com/LOPIN6FARRIER/katax-core"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-8 hover:border-cyan-500/50 transition-all hover:scale-105 text-center group backdrop-blur-sm"
+          >
+            <div
+              class="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-500/30 transition-colors"
+            >
+              <svg
+                class="w-8 h-8 text-cyan-400"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                ></path>
               </svg>
             </div>
             <h3 class="text-xl font-bold mb-2">GitHub</h3>
             <p class="text-gray-400 text-sm">View source code and contribute</p>
           </a>
 
-          <a href="https://www.npmjs.com/package/katax-core" target="_blank" rel="noopener noreferrer" class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-8 hover:border-cyan-500/50 transition-all hover:scale-105 text-center group backdrop-blur-sm">
-            <div class="w-16 h-16 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-pink-500/30 transition-colors">
-              <svg class="w-8 h-8 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M0 7.334v8h6.666v1.332H12v-1.332h12v-8H0zm6.666 6.664H5.334v-4H3.999v4H1.335V8.667h5.331v5.331zm4 0v1.336H8.001V8.667h5.334v5.332h-2.669v-.001zm12.001 0h-1.33v-4h-1.336v4h-1.335v-4h-1.33v4h-2.671V8.667h8.002v5.331zM10.665 10H12v2.667h-1.335V10z"/>
+          <a
+            href="https://www.npmjs.com/package/katax-core"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-8 hover:border-cyan-500/50 transition-all hover:scale-105 text-center group backdrop-blur-sm"
+          >
+            <div
+              class="w-16 h-16 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-pink-500/30 transition-colors"
+            >
+              <svg
+                class="w-8 h-8 text-pink-400"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M0 7.334v8h6.666v1.332H12v-1.332h12v-8H0zm6.666 6.664H5.334v-4H3.999v4H1.335V8.667h5.331v5.331zm4 0v1.336H8.001V8.667h5.334v5.332h-2.669v-.001zm12.001 0h-1.33v-4h-1.336v4h-1.335v-4h-1.33v4h-2.671V8.667h8.002v5.331zM10.665 10H12v2.667h-1.335V10z"
+                ></path>
               </svg>
             </div>
             <h3 class="text-xl font-bold mb-2">NPM Package</h3>
             <p class="text-gray-400 text-sm">Download and install</p>
           </a>
 
-          <a href="https://github.com/LOPIN6FARRIER/katax-core#readme" target="_blank" rel="noopener noreferrer" class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-8 hover:border-cyan-500/50 transition-all hover:scale-105 text-center group backdrop-blur-sm">
-            <div class="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-500/30 transition-colors">
-              <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+          <a
+            href="https://github.com/LOPIN6FARRIER/katax-core#readme"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-8 hover:border-cyan-500/50 transition-all hover:scale-105 text-center group backdrop-blur-sm"
+          >
+            <div
+              class="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-500/30 transition-colors"
+            >
+              <svg
+                class="w-8 h-8 text-cyan-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                ></path>
               </svg>
             </div>
             <h3 class="text-xl font-bold mb-2">Documentation</h3>
@@ -702,34 +1018,92 @@ export async function createProduct(req: Request, res: Response) {
           <div>
             <h4 class="font-bold mb-4">Packages</h4>
             <ul class="space-y-2 text-sm">
-              <li><a href="https://www.npmjs.com/package/katax-core" target="_blank" class="text-gray-400 hover:text-cyan-400 transition-colors">katax-core</a></li>
-              <li><a href="https://www.npmjs.com/package/katax-service-manager" target="_blank" class="text-gray-400 hover:text-pink-400 transition-colors">katax-service-manager</a></li>
-              <li><a href="https://www.npmjs.com/package/katax-cli" target="_blank" class="text-gray-400 hover:text-purple-400 transition-colors">katax-cli</a></li>
+              <li>
+                <a
+                  href="https://www.npmjs.com/package/katax-core"
+                  target="_blank"
+                  class="text-gray-400 hover:text-cyan-400 transition-colors"
+                  >katax-core</a>
+              </li>
+              <li>
+                <a
+                  href="https://www.npmjs.com/package/katax-service-manager"
+                  target="_blank"
+                  class="text-gray-400 hover:text-pink-400 transition-colors"
+                  >katax-service-manager</a>
+              </li>
+              <li>
+                <a
+                  href="https://www.npmjs.com/package/katax-cli"
+                  target="_blank"
+                  class="text-gray-400 hover:text-purple-400 transition-colors"
+                  >katax-cli</a>
+              </li>
             </ul>
           </div>
           <div>
             <h4 class="font-bold mb-4">Repositories</h4>
             <ul class="space-y-2 text-sm">
-              <li><a href="https://github.com/LOPIN6FARRIER/katax-core" target="_blank" class="text-gray-400 hover:text-cyan-400 transition-colors">Core on GitHub</a></li>
-              <li><a href="https://github.com/LOPIN6FARRIER/katax-service-manager" target="_blank" class="text-gray-400 hover:text-pink-400 transition-colors">Service Manager on GitHub</a></li>
-              <li><a href="https://github.com/LOPIN6FARRIER/katax-cli" target="_blank" class="text-gray-400 hover:text-purple-400 transition-colors">CLI on GitHub</a></li>
+              <li>
+                <a
+                  href="https://github.com/LOPIN6FARRIER/katax-core"
+                  target="_blank"
+                  class="text-gray-400 hover:text-cyan-400 transition-colors"
+                  >Core on GitHub</a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/LOPIN6FARRIER/katax-service-manager"
+                  target="_blank"
+                  class="text-gray-400 hover:text-pink-400 transition-colors"
+                  >Service Manager on GitHub</a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/LOPIN6FARRIER/katax-cli"
+                  target="_blank"
+                  class="text-gray-400 hover:text-purple-400 transition-colors"
+                  >CLI on GitHub</a>
+              </li>
             </ul>
           </div>
           <div>
             <h4 class="font-bold mb-4">Resources</h4>
             <ul class="space-y-2 text-sm">
-              <li><a href="#skill" class="text-gray-400 hover:text-purple-400 transition-colors">AI Skill</a></li>
-              <li><a href="https://github.com/LOPIN6FARRIER/katax-service-manager/tree/main/.github/skills" target="_blank" class="text-gray-400 hover:text-cyan-400 transition-colors">Documentation</a></li>
-              <li><a href="https://github.com/LOPIN6FARRIER/katax-core/issues" target="_blank" class="text-gray-400 hover:text-cyan-400 transition-colors">Report Issues</a></li>
+              <li>
+                <a
+                  href="#skill"
+                  class="text-gray-400 hover:text-purple-400 transition-colors"
+                  >AI Skill</a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/LOPIN6FARRIER/katax-service-manager/tree/main/.github/skills"
+                  target="_blank"
+                  class="text-gray-400 hover:text-cyan-400 transition-colors"
+                  >Documentation</a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/LOPIN6FARRIER/katax-core/issues"
+                  target="_blank"
+                  class="text-gray-400 hover:text-cyan-400 transition-colors"
+                  >Report Issues</a>
+              </li>
             </ul>
           </div>
         </div>
-        <div class="border-t border-slate-700/30 pt-8 text-center text-sm text-gray-400">
-          <p>Made with ❤️ by <span class="text-cyan-400 font-semibold">Vinicio Esparza</span></p>
+        <div
+          class="border-t border-slate-700/30 pt-8 text-center text-sm text-gray-400"
+        >
+          <p>
+            Made with ❤️ by <span class="text-cyan-400 font-semibold"
+              >Vinicio Esparza</span>
+          </p>
           <p class="mt-2">Licensed under MIT License</p>
         </div>
       </div>
     </footer>
-    <Analytics/>
+    <Analytics />
   </body>
 </html>
