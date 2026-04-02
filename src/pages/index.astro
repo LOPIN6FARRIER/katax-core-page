@@ -402,146 +402,188 @@ npm run dev`}</code></pre>
           Quick Examples
         </h2>
 
-        <!-- Basic Example -->
+        <!-- Katax Core - Validation Example -->
         <div class="mb-12">
           <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
-            <span class="text-cyan-400">01.</span> Basic Validation
+            <span class="text-cyan-400">01.</span> katax-core - Request Validation
+          </h3>
+          <div class="bg-slate-900/50 border border-cyan-700/50 rounded-xl overflow-hidden backdrop-blur-sm">
+            <div class="bg-cyan-900/20 px-6 py-3 border-b border-cyan-700/50">
+              <span class="text-sm text-gray-400">TypeScript - Schema Validation</span>
+            </div>
+            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`import { k, type kataxInfer } from 'katax-core';
+
+const createUserSchema = k.object({
+  name: k.string().minLength(2).maxLength(100),
+  email: k.email().corporate(),
+  age: k.number().min(18).max(100),
+  roles: k.array(k.enum(['admin', 'user', 'moderator'] as const)),
+  acceptedTerms: k.boolean().refine(val => val === true, {
+    message: 'Must accept terms'
+  })
+});
+
+// Type inference
+type CreateUserData = kataxInfer<typeof createUserSchema>;
+
+// In your Express handler
+export async function createUser(req: Request, res: Response) {
+  const result = createUserSchema.safeParse(req.body);
+  
+  if (!result.success) {
+    return res.status(400).json({ errors: result.issues });
+  }
+  
+  // result.data is fully typed
+  const user = await database.createUser(result.data);
+  res.status(201).json(user);
+}`}</code></pre>
+          </div>
+        </div>
+
+        <!-- Katax Service Manager - Bootstrap Example -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
+            <span class="text-pink-400">02.</span> katax-service-manager - Bootstrap Setup
+          </h3>
+          <div class="bg-slate-900/50 border border-pink-700/50 rounded-xl overflow-hidden backdrop-blur-sm">
+            <div class="bg-pink-900/20 px-6 py-3 border-b border-pink-700/50">
+              <span class="text-sm text-gray-400">TypeScript - Service Container</span>
+            </div>
+            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`import { Katax } from 'katax-service-manager';
+
+// Initialize once at app startup
+await Katax.getInstance().init({
+  loadEnv: true,  // Auto-load .env file
+  config: {
+    port: process.env.PORT || 3000,
+    env: 'production'
+  },
+  logger: {
+    level: 'info',
+    transports: {
+      redis: {
+        host: process.env.REDIS_HOST,
+        streamKey: 'app-logs'
+      }
+    }
+  },
+  database: {
+    type: 'postgresql',
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT || '5432'),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+  }
+});
+
+// Use anywhere in your app
+const katax = Katax.getInstance();
+katax.logger.info('Server starting');
+const users = await katax.db.query('SELECT * FROM users');
+
+// Graceful shutdown handled automatically
+katax.onShutdown(async () => {
+  katax.logger.info('Cleaning up...');
+  await cleanupResources();
+});`}</code></pre>
+          </div>
+        </div>
+
+        <!-- Katax CLI - Project Generation -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
+            <span class="text-purple-400">03.</span> katax-cli - Generate Full API
+          </h3>
+          <div class="bg-slate-900/50 border border-purple-700/50 rounded-xl overflow-hidden backdrop-blur-sm">
+            <div class="bg-purple-900/20 px-6 py-3 border-b border-purple-700/50">
+              <span class="text-sm text-gray-400">Bash - CLI Commands</span>
+            </div>
+            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`# Install CLI globally
+npm install -g katax-cli
+
+# Create new project with interactive prompts
+katax init my-api
+  ✓ Project name: my-api
+  ✓ Validation: katax-core
+  ✓ Database: PostgreSQL
+  ✓ Auth: JWT
+  ✓ WebSocket: Yes
+
+# Generate CRUD endpoints
+cd my-api
+katax generate-crud products
+  ✓ Created src/api/products/products.controller.ts
+  ✓ Created src/api/products/products.handler.ts
+  ✓ Created src/api/products/products.validator.ts
+  ✓ Created src/api/products/products.routes.ts
+  ✓ Updated src/router.ts
+
+# Add custom endpoint
+katax add-endpoint users/profile --method GET
+
+# Generate OpenAPI documentation
+katax generate-docs
+
+# Start development
+npm run dev
+# Server running on http://localhost:3000`}</code></pre>
+          </div>
+        </div>
+
+        <!-- Full Stack Example -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
+            <span class="text-cyan-400">04.</span> Complete Endpoint (All 3 Packages)
           </h3>
           <div class="bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden backdrop-blur-sm">
-            <div class="bg-cyan-900/20 px-6 py-3 border-b border-slate-700/50">
-              <span class="text-sm text-gray-400">TypeScript</span>
+            <div class="bg-gradient-to-r from-cyan-900/20 via-pink-900/20 to-purple-900/20 px-6 py-3 border-b border-slate-700/50">
+              <span class="text-sm text-gray-400">TypeScript - Handler with Validation & Services</span>
             </div>
-            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`import { k } from 'katax-core';
+            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`import { Request, Response } from 'express';
+import { k, type kataxInfer } from 'katax-core';
+import { Katax } from 'katax-service-manager';
 
-const userSchema = k.object({
-  name: k.string().minLength(2),
-  email: k.string().email(),
-  age: k.number().min(18).max(100),
+// Validation schema
+const createProductSchema = k.object({
+  name: k.string().minLength(3).maxLength(100),
+  price: k.number().min(0),
+  categoryId: k.number().integer(),
   tags: k.array(k.string()).optional()
 });
 
-const result = userSchema.safeParse({
-  name: 'John Doe',
-  email: 'john@example.com',
-  age: 25,
-  tags: ['developer', 'typescript']
-});
+type CreateProductData = kataxInfer<typeof createProductSchema>;
 
-if (result.success) {
-  console.log('Valid data:', result.data);
-} else {
-  console.log('Errors:', result.issues);
-}`}</code></pre>
-          </div>
-        </div>
-
-        <!-- Async Validation Example -->
-        <div class="mb-12">
-          <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
-            <span class="text-pink-400">02.</span> Async Validation
-          </h3>
-          <div class="bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden backdrop-blur-sm">
-            <div class="bg-pink-900/20 px-6 py-3 border-b border-pink-500/30">
-              <span class="text-sm text-gray-400">TypeScript - Database Validation</span>
-            </div>
-            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`import { k } from 'katax-core';
-
-// Async validator to check if email already exists
-const emailUniqueValidator = async (email, path) => {
-  const exists = await db.users.findOne({ email });
-  if (exists) {
-    return [{ path, message: 'Email already registered' }];
+// Handler
+export async function createProduct(req: Request, res: Response) {
+  const katax = Katax.getInstance();
+  
+  // Validate request body
+  const validation = createProductSchema.safeParse(req.body);
+  if (!validation.success) {
+    return res.status(400).json({ errors: validation.issues });
   }
-  return [];
-};
-
-const registrationSchema = k.object({
-  email: k.email().asyncRefine(emailUniqueValidator),
-  password: k.string()
-    .minLength(8)
-    .regex(/[A-Z]/, 'Must contain uppercase')
-    .regex(/[0-9]/, 'Must contain number')
-});
-
-// Use async validation
-const result = await registrationSchema.safeParseAsync({
-  email: 'user@example.com',
-  password: 'SecurePass123'
-});
-
-if (result.success) {
-  console.log('Valid data:', result.data);
+  
+  try {
+    // Use database service
+    const result = await katax.db.query(
+      'INSERT INTO products (name, price, category_id) VALUES ($1, $2, $3) RETURNING *',
+      [validation.data.name, validation.data.price, validation.data.categoryId]
+    );
+    
+    // Log with service
+    katax.logger.info('Product created', { productId: result.rows[0].id });
+    
+    // Broadcast via WebSocket
+    katax.ws?.emit('product:created', result.rows[0]);
+    
+    return res.status(201).json(result.rows[0]);
+  } catch (error) {
+    katax.logger.error('Failed to create product', { error });
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 }`}</code></pre>
-          </div>
-        </div>
-
-        <!-- Type Inference Example -->
-        <div class="mb-12">
-          <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
-            <span class="text-cyan-400">03.</span> Type Inference
-          </h3>
-          <div class="bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden backdrop-blur-sm">
-            <div class="bg-cyan-900/20 px-6 py-3 border-b border-slate-700/50">
-              <span class="text-sm text-gray-400">TypeScript - Full Type Safety</span>
-            </div>
-            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`import { k, kataxInfer } from 'katax-core';
-
-const createProjectSchema = k.object({
-  title: k.string().minLength(3),
-  description: k.string().optional(),
-  tags: k.array(k.string()),
-  isPublic: k.boolean().default(true)
-});
-
-// Automatically infer TypeScript type
-export type CreateProjectData = kataxInfer<typeof createProjectSchema>;
-// Type: { title: string; description?: string; tags: string[]; isPublic: boolean }
-
-function createProject(data: CreateProjectData) {
-  // Full type safety and autocomplete
-  console.log(data.title); // ✓ string
-  console.log(data.tags);  // ✓ string[]
-}`}</code></pre>
-          </div>
-        </div>
-
-        <!-- Complex Schema Example -->
-        <div class="mb-12">
-          <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
-            <span class="text-pink-400">04.</span> Complex Nested Schema
-          </h3>
-          <div class="bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden backdrop-blur-sm">
-            <div class="bg-pink-900/20 px-6 py-3 border-b border-pink-500/30">
-              <span class="text-sm text-gray-400">TypeScript - Nested Objects & Arrays</span>
-            </div>
-            <pre class="p-6 overflow-x-auto"><code class="text-sm">{`import { k } from 'katax-core';
-
-const blogSchema = k.object({
-  title: k.string().minLength(5).maxLength(100),
-  slug: k.string().regex(/^[a-z0-9-]+$/),
-  author: k.object({
-    name: k.string(),
-    email: k.email(),
-    bio: k.string().optional()
-  }),
-  tags: k.array(k.string()).unique().minLength(1),
-  publishedAt: k.date().isPast(),
-  metadata: k.object({
-    views: k.number().min(0).default(0),
-    likes: k.number().min(0).default(0)
-  }).optional()
-});
-
-const result = blogSchema.safeParse({
-  title: 'Introduction to Katax Core',
-  slug: 'intro-to-katax',
-  author: {
-    name: 'Vinicio Esparza',
-    email: 'vinicio@example.com'
-  },
-  tags: ['typescript', 'validation'],
-  publishedAt: new Date('2024-01-01')
-});`}</code></pre>
           </div>
         </div>
       </div>
