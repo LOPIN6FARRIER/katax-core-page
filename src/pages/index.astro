@@ -183,10 +183,10 @@ import Analytics from "@vercel/analytics/astro";
                   </h4>
                   <ul class="space-y-2 text-sm text-gray-300">
                     <li>✓ Full TypeScript type inference</li>
-                    <li>✓ Async validation support</li>
-                    <li>✓ 8+ built-in schema types</li>
-                    <li>✓ Custom validators & transforms</li>
-                    <li>✓ Zero dependencies (except date-fns)</li>
+                    <li>✓ Async validation & asyncRefine</li>
+                    <li>✓ 20+ built-in schema types</li>
+                    <li>✓ refines, transforms & branded types</li>
+                    <li>✓ Immutable builders (all methods return clones)</li>
                   </ul>
                 </div>
                 <div>
@@ -199,7 +199,7 @@ import Analytics from "@vercel/analytics/astro";
                     >
                   </div>
                   <div class="mt-3 text-sm text-gray-400">
-                    <span class="font-semibold">Version:</span> 1.5.3
+                    <span class="font-semibold">Version:</span> 1.6.0
                   </div>
                 </div>
               </div>
@@ -651,9 +651,7 @@ const createUserSchema = k.object({
   email: k.email().corporate(),
   age: k.number().min(18).max(100),
   roles: k.array(k.enum(['admin', 'user', 'moderator'] as const)),
-  acceptedTerms: k.boolean().refine(val => val === true, {
-    message: 'Must accept terms'
-  })
+  acceptedTerms: k.boolean().refine(val => val === true, 'Must accept terms')
 });
 
 // Type inference
@@ -870,7 +868,9 @@ export async function createProduct(req: Request, res: Response) {
   .min(0)
   .max(100)
   .positive()
-  .integer()</code></pre>
+  .integer()
+  .nonnegative()
+  .nonpositive()</code></pre>
           </div>
           <div
             class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
@@ -899,9 +899,10 @@ export async function createProduct(req: Request, res: Response) {
             <h4 class="text-lg font-bold text-cyan-400 mb-3">Array Schema</h4>
             <pre
               class="text-sm text-gray-300"><code>k.array(k.string())
-  .minLength(1)
-  .maxLength(10)
-  .unique()</code></pre>
+  .min(1)
+  .max(10)
+  .unique()
+  .nonempty()</code></pre>
           </div>
           <div
             class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
