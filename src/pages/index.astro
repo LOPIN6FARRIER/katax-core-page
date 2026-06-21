@@ -4,1999 +4,1104 @@ import Analytics from "@vercel/analytics/astro";
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Katax Ecosystem — TypeScript libraries for schema validation, service management, and API scaffolding. Complete reference for katax-core, katax-service-manager, and katax-cli."
+      content="Katax Ecosystem - Complete Node.js development toolkit: validation, service management, and CLI scaffolding"
     />
     <meta
       name="keywords"
-      content="katax-core, katax-service-manager, katax-cli, typescript, validation, service container, nodejs, api, cli"
+      content="validation, schema, typescript, type-safe, validator, service-manager, cli, node.js, express, api"
     />
     <meta name="author" content="Vinicio Esparza" />
-    <meta name="theme-color" content="#0a0e17" />
-    <title>Katax Docs Hub — Ecosystem Reference</title>
+    <title>Katax Ecosystem - Node.js Development Toolkit</title>
     <link rel="icon" type="image/svg+xml" href="/images/logo.svg" />
+    <link rel="apple-touch-icon" href="/images/logo.svg" />
   </head>
-  <body>
-    <header class="topbar">
-      <a class="topbar-brand" href="#">
-        <img
-          src="/images/logo.svg"
-          alt="Katax"
-          class="logo"
-          width="38"
-          height="38"
-        />
-        <div class="brand-text">
-          <span class="eyebrow">Ecosystem</span>
-          <h1>Katax Docs Hub</h1>
-        </div>
-      </a>
-      <nav class="topbar-links">
-        <a
-          href="https://www.npmjs.com/package/katax-core"
-          target="_blank"
-          rel="noopener noreferrer">npm core</a
-        >
-        <a
-          href="https://www.npmjs.com/package/katax-service-manager"
-          target="_blank"
-          rel="noopener noreferrer">npm service</a
-        >
-        <a
-          href="https://www.npmjs.com/package/katax-cli"
-          target="_blank"
-          rel="noopener noreferrer">npm cli</a
-        >
-        <a
-          href="https://github.com/LOPIN6FARRIER/katax-core"
-          target="_blank"
-          rel="noopener noreferrer">GitHub Core</a
-        >
-        <a
-          href="https://github.com/LOPIN6FARRIER/katax-service-manager"
-          target="_blank"
-          rel="noopener noreferrer">GitHub Service</a
-        >
-        <a
-          href="https://github.com/LOPIN6FARRIER/katax-cli"
-          target="_blank"
-          rel="noopener noreferrer">GitHub CLI</a
-        >
-      </nav>
-    </header>
-
-    <div class="layout">
-      <aside class="sidebar">
-        <p class="sidebar-title">Navigation</p>
-        <a href="#overview">Overview</a>
-        <a href="#install">Installation</a>
-        <hr class="sidebar-divider" />
-        <span class="sidebar-group-label">katax-core</span>
-        <a href="#core">Overview</a>
-        <a href="#core-string">String</a>
-        <a href="#core-number">Number</a>
-        <a href="#core-boolean">Boolean</a>
-        <a href="#core-object">Object</a>
-        <a href="#core-array">Array</a>
-        <a href="#core-email">Email</a>
-        <a href="#core-date">Date / TwoDates</a>
-        <a href="#core-file">File</a>
-        <a href="#core-base64">Base64</a>
-        <a href="#core-composition">Union / Intersection / Lazy</a>
-        <a href="#core-extras">Literal / Enum / Tuple / Record</a>
-        <a href="#core-custom">Custom</a>
-        <a href="#core-modifiers">Modifiers / Coerce / Preprocess</a>
-        <a href="#core-async">Async Validation</a>
-        <hr class="sidebar-divider" />
-        <span class="sidebar-group-label">katax-service-manager</span>
-        <a href="#sm">Overview</a>
-        <a href="#sm-init">Init / Env / Lifecycle</a>
-        <a href="#sm-db">Database</a>
-        <a href="#sm-cache">Cache</a>
-        <a href="#sm-logger">Logger / Transports</a>
-        <a href="#sm-ws">WebSocket</a>
-        <a href="#sm-cron">Cron</a>
-        <a href="#sm-registry">Registry / Health</a>
-        <a href="#sm-bridge">Stream Bridge / Heartbeat</a>
-        <a href="#sm-bootstrap">Bootstrap Template</a>
-        <hr class="sidebar-divider" />
-        <span class="sidebar-group-label">katax-cli</span>
-        <a href="#cli">Overview</a>
-        <a href="#cli-commands">Commands</a>
-        <a href="#cli-generators">Generators / Templates</a>
-        <hr class="sidebar-divider" />
-        <a href="#skill">AI Skill</a>
-        <a href="#release">Current Status</a>
-      </aside>
-
-      <main class="content">
-        <section class="hero">
-          <img
-            src="/images/logo.svg"
-            alt="Katax"
-            class="hero-icon"
-            width="56"
-            height="56"
-          />
-          <h2>Katax Ecosystem</h2>
-          <p>
-            Three TypeScript packages to build, validate, and deploy Node.js
-            APIs on VPS infrastructure with PM2.
-          </p>
-          <div class="hero-tags">
-            <span class="hero-tag"
-              ><span class="chip-dot"></span> katax-core 1.5.4</span
-            >
-            <span class="hero-tag"
-              ><span class="chip-dot"></span> katax-service-manager 0.5.3</span
-            >
-            <span class="hero-tag"
-              ><span class="chip-dot"></span> katax-cli 1.4.4</span
-            >
+  <body
+    class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white"
+  >
+    <!-- Header/Nav -->
+    <nav
+      class="fixed top-0 w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50 z-50"
+    >
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center space-x-3">
+            <img src="/images/logo.svg" alt="Katax Logo" class="w-10 h-10" />
+            <span class="text-2xl font-bold text-white"> Katax Ecosystem </span>
           </div>
-        </section>
+          <div class="flex space-x-4">
+            <a
+              href="#projects"
+              class="hover:text-cyan-400 transition-colors hidden md:block"
+              >Projects</a
+            >
+            <a
+              href="#skill"
+              class="hover:text-cyan-400 transition-colors hidden md:block"
+              >AI Skill</a
+            >
+            <a
+              href="#examples"
+              class="hover:text-cyan-400 transition-colors hidden md:block"
+              >Examples</a
+            >
+            <a
+              href="https://github.com/LOPIN6FARRIER"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hover:text-cyan-400 transition-colors"
+            >
+              GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
 
-        <section id="install" class="doc-section">
-          <div class="section-accent"></div>
-          <h2><span class="section-icon">&#9679;</span> Installation</h2>
-          <pre><code>{`npm install katax-core
-npm install katax-service-manager
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 px-4">
+      <div class="container mx-auto text-center">
+        <div class="inline-block mb-4">
+          <span
+            class="px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 rounded-full text-sm font-semibold"
+          >
+            Complete Node.js Development Toolkit
+          </span>
+        </div>
+        <h1
+          class="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 bg-clip-text text-transparent"
+        >
+          Katax Ecosystem
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+          Build production-ready APIs with type-safe validation, service
+          management, and CLI scaffolding
+        </p>
+        <div
+          class="flex flex-col sm:flex-row gap-4 justify-center items-center"
+        >
+          <a
+            href="#projects"
+            class="px-8 py-4 bg-gradient-to-r from-cyan-600 to-pink-600 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg shadow-cyan-500/50"
+          >
+            Explore Projects
+          </a>
+          <a
+            href="#skill"
+            class="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg shadow-purple-500/50"
+          >
+            Get AI Skill
+          </a>
+        </div>
+
+        <!-- Stats -->
+        <div
+          class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto"
+        >
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6"
+          >
+            <div class="text-3xl font-bold text-cyan-400">3</div>
+            <div class="text-sm text-gray-400 mt-1">Packages</div>
+          </div>
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6"
+          >
+            <div class="text-3xl font-bold text-pink-400">100%</div>
+            <div class="text-sm text-gray-400 mt-1">TypeScript</div>
+          </div>
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6"
+          >
+            <div class="text-3xl font-bold text-purple-400">MIT</div>
+            <div class="text-sm text-gray-400 mt-1">License</div>
+          </div>
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6"
+          >
+            <div class="text-3xl font-bold text-cyan-400">ESM</div>
+            <div class="text-sm text-gray-400 mt-1">Modern</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-20 px-4 bg-slate-800/30">
+      <div class="container mx-auto">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent"
+        >
+          Ecosystem Projects
+        </h2>
+
+        <!-- Katax Core -->
+        <div class="max-w-5xl mx-auto mb-12">
+          <div
+            class="bg-slate-900/50 backdrop-blur-sm border border-cyan-500/50 rounded-xl overflow-hidden"
+          >
+            <div
+              class="bg-gradient-to-r from-cyan-600/20 to-pink-600/20 px-8 py-6 border-b border-slate-700/50"
+            >
+              <div class="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h3 class="text-3xl font-bold text-cyan-400 mb-2">
+                    katax-core
+                  </h3>
+                  <p class="text-gray-300">
+                    Schema validation library for TypeScript/JavaScript
+                  </p>
+                </div>
+                <div class="flex gap-3">
+                  <a
+                    href="https://www.npmjs.com/package/katax-core"
+                    target="_blank"
+                    class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    NPM
+                  </a>
+                  <a
+                    href="https://github.com/LOPIN6FARRIER/katax-core"
+                    target="_blank"
+                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    GitHub
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="p-8">
+              <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h4 class="text-sm font-semibold text-cyan-400 mb-3">
+                    Features
+                  </h4>
+                  <ul class="space-y-2 text-sm text-gray-300">
+                    <li>✓ Full TypeScript type inference</li>
+                    <li>✓ Async validation support</li>
+                    <li>✓ 8+ built-in schema types</li>
+                    <li>✓ Custom validators & transforms</li>
+                    <li>✓ Zero dependencies (except date-fns)</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-cyan-400 mb-3">
+                    Installation
+                  </h4>
+                  <div class="bg-slate-950/50 rounded-lg p-3">
+                    <code class="text-sm text-cyan-300"
+                      >npm install katax-core</code
+                    >
+                  </div>
+                  <div class="mt-3 text-sm text-gray-400">
+                    <span class="font-semibold">Version:</span> 1.5.3
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Katax Service Manager -->
+        <div class="max-w-5xl mx-auto mb-12">
+          <div
+            class="bg-slate-900/50 backdrop-blur-sm border border-pink-500/50 rounded-xl overflow-hidden"
+          >
+            <div
+              class="bg-gradient-to-r from-pink-600/20 to-purple-600/20 px-8 py-6 border-b border-slate-700/50"
+            >
+              <div class="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h3 class="text-3xl font-bold text-pink-400 mb-2">
+                    katax-service-manager
+                  </h3>
+                  <p class="text-gray-300">
+                    Runtime service container for Node.js applications
+                  </p>
+                </div>
+                <div class="flex gap-3">
+                  <a
+                    href="https://www.npmjs.com/package/katax-service-manager"
+                    target="_blank"
+                    class="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    NPM
+                  </a>
+                  <a
+                    href="https://github.com/LOPIN6FARRIER/katax-service-manager"
+                    target="_blank"
+                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    GitHub
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="p-8">
+              <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h4 class="text-sm font-semibold text-pink-400 mb-3">
+                    Features
+                  </h4>
+                  <ul class="space-y-2 text-sm text-gray-300">
+                    <li>✓ Singleton service container</li>
+                    <li>✓ Auto .env loading</li>
+                    <li>
+                      ✓ Logger with custom transports (Redis, Telegram,
+                      Callback)
+                    </li>
+                    <li>
+                      ✓ Database connection pools (PostgreSQL, MySQL, MongoDB)
+                    </li>
+                    <li>✓ WebSocket & Cron services</li>
+                    <li>✓ Graceful shutdown handling</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-pink-400 mb-3">
+                    Installation
+                  </h4>
+                  <div class="bg-slate-950/50 rounded-lg p-3">
+                    <code class="text-sm text-pink-300"
+                      >npm install katax-service-manager</code
+                    >
+                  </div>
+                  <div class="mt-3 text-sm text-gray-400">
+                    <span class="font-semibold">Version:</span> 0.5.0
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Katax CLI -->
+        <div class="max-w-5xl mx-auto">
+          <div
+            class="bg-slate-900/50 backdrop-blur-sm border border-purple-500/50 rounded-xl overflow-hidden"
+          >
+            <div
+              class="bg-gradient-to-r from-purple-600/20 to-cyan-600/20 px-8 py-6 border-b border-slate-700/50"
+            >
+              <div class="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h3 class="text-3xl font-bold text-purple-400 mb-2">
+                    katax-cli
+                  </h3>
+                  <p class="text-gray-300">
+                    CLI scaffolding tool for Express APIs with TypeScript
+                  </p>
+                </div>
+                <div class="flex gap-3">
+                  <a
+                    href="https://www.npmjs.com/package/katax-cli"
+                    target="_blank"
+                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    NPM
+                  </a>
+                  <a
+                    href="https://github.com/LOPIN6FARRIER/katax-cli"
+                    target="_blank"
+                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    GitHub
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="p-8">
+              <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h4 class="text-sm font-semibold text-purple-400 mb-3">
+                    Features
+                  </h4>
+                  <ul class="space-y-2 text-sm text-gray-300">
+                    <li>✓ Project scaffolding with Express + TypeScript</li>
+                    <li>✓ Generate endpoints, CRUD operations, docs</li>
+                    <li>✓ Built-in auth & stream utilities</li>
+                    <li>✓ Database support (PostgreSQL, MySQL, MongoDB)</li>
+                    <li>
+                      ✓ Auto-integration with katax-core & katax-service-manager
+                    </li>
+                    <li>✓ Production-ready templates</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-purple-400 mb-3">
+                    Installation
+                  </h4>
+                  <div class="bg-slate-950/50 rounded-lg p-3">
+                    <code class="text-sm text-purple-300"
+                      >npm install -g katax-cli</code
+                    >
+                  </div>
+                  <div class="mt-3 text-sm text-gray-400">
+                    <span class="font-semibold">Version:</span> 1.4.1
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Skill Section -->
+    <section id="skill" class="py-20 px-4">
+      <div class="container mx-auto max-w-5xl">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-8 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent"
+        >
+          GitHub Copilot Skill
+        </h2>
+        <p class="text-center text-gray-300 mb-12 max-w-3xl mx-auto">
+          Get expert guidance for the entire Katax ecosystem directly in VS Code
+          with our custom GitHub Copilot skill.
+        </p>
+
+        <div
+          class="bg-gradient-to-br from-purple-900/30 to-cyan-900/30 backdrop-blur-sm border border-purple-500/50 rounded-xl p-8"
+        >
+          <div class="grid md:grid-cols-2 gap-8 mb-8">
+            <div>
+              <h3 class="text-2xl font-bold text-purple-400 mb-4">
+                What You Get
+              </h3>
+              <ul class="space-y-3 text-gray-300">
+                <li class="flex items-start gap-2">
+                  <svg
+                    class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Expert guidance for all 3 Katax packages</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <svg
+                    class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Bootstrap & service configuration examples</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <svg
+                    class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Validation patterns & best practices</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <svg
+                    class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Database, WebSocket, cron setup guides</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <svg
+                    class="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Troubleshooting common issues</span>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 class="text-2xl font-bold text-purple-400 mb-4">
+                How to Install
+              </h3>
+              <div class="space-y-4 text-gray-300">
+                <div class="flex items-start gap-3">
+                  <span
+                    class="flex-shrink-0 w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center text-sm font-bold text-purple-400"
+                    >1</span
+                  >
+                  <p>
+                    Download the <code
+                      class="text-purple-300 bg-slate-950/50 px-2 py-0.5 rounded"
+                      >SKILL.md</code
+                    > file from the button below
+                  </p>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span
+                    class="flex-shrink-0 w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center text-sm font-bold text-purple-400"
+                    >2</span
+                  >
+                  <p>
+                    Place it in <code
+                      class="text-purple-300 bg-slate-950/50 px-2 py-0.5 rounded"
+                      >~/.claude/skills/katax-ecosystem/</code
+                    > (Claude Desktop) or your Copilot skills folder
+                  </p>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span
+                    class="flex-shrink-0 w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center text-sm font-bold text-purple-400"
+                    >3</span
+                  >
+                  <p>
+                    Restart VS Code and invoke with <span
+                      class="text-purple-300 font-semibold"
+                      >@katax-ecosystem</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="flex flex-col sm:flex-row gap-4 justify-center pt-6 border-t border-purple-500/30"
+          >
+            <a
+              href="https://raw.githubusercontent.com/LOPIN6FARRIER/katax-service-manager/main/.github/skills/katax-ecosystem/SKILL.md"
+              download="SKILL.md"
+              class="px-8 py-4 bg-gradient-to-r from-purple-600 to-cyan-600 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg shadow-purple-500/50 text-center"
+            >
+              Download SKILL.md
+            </a>
+            <a
+              href="https://github.com/LOPIN6FARRIER/katax-service-manager/tree/main/.github/skills/katax-ecosystem"
+              target="_blank"
+              class="px-8 py-4 bg-slate-800 border border-slate-700/50 rounded-lg font-semibold hover:bg-slate-700 transition-colors text-center"
+            >
+              View on GitHub
+            </a>
+          </div>
+        </div>
+
+        <!-- Skill Example -->
+        <div
+          class="mt-12 bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden"
+        >
+          <div class="bg-purple-900/20 px-6 py-3 border-b border-purple-500/30">
+            <span class="text-sm text-gray-400">Example Usage</span>
+          </div>
+          <pre
+            class="p-6 overflow-x-auto text-sm text-gray-300"><code>{`// In VS Code with GitHub Copilot
+// Type: @katax-ecosystem how do I set up Redis logging?
+
+// The skill provides context-aware guidance:
+import { Katax } from 'katax-service-manager';
+
+await Katax.getInstance().init({
+  loadEnv: true,
+  logger: {
+    level: 'info',
+    transports: {
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+        streamKey: 'app-logs',
+        maxLen: 10000
+      }
+    }
+  }
+});`}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section id="installation" class="py-20 px-4 bg-slate-800/30">
+      <div class="container mx-auto max-w-4xl">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent"
+        >
+          Quick Start
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <!-- Katax Core -->
+          <div
+            class="bg-slate-900/50 border border-cyan-500/50 rounded-xl p-6 backdrop-blur-sm"
+          >
+            <h3 class="text-lg font-bold text-cyan-400 mb-4">Validation</h3>
+            <div class="bg-slate-950 rounded-lg p-3 mb-3">
+              <code class="text-xs text-cyan-300">npm install katax-core</code>
+            </div>
+            <p class="text-sm text-gray-400">Type-safe schema validation</p>
+          </div>
+
+          <!-- Katax Service Manager -->
+          <div
+            class="bg-slate-900/50 border border-pink-500/50 rounded-xl p-6 backdrop-blur-sm"
+          >
+            <h3 class="text-lg font-bold text-pink-400 mb-4">Services</h3>
+            <div class="bg-slate-950 rounded-lg p-3 mb-3">
+              <code class="text-xs text-pink-300"
+                >npm install katax-service-manager</code
+              >
+            </div>
+            <p class="text-sm text-gray-400">Runtime service container</p>
+          </div>
+
+          <!-- Katax CLI -->
+          <div
+            class="bg-slate-900/50 border border-purple-500/50 rounded-xl p-6 backdrop-blur-sm"
+          >
+            <h3 class="text-lg font-bold text-purple-400 mb-4">Scaffolding</h3>
+            <div class="bg-slate-950 rounded-lg p-3 mb-3">
+              <code class="text-xs text-purple-300"
+                >npm install -g katax-cli</code
+              >
+            </div>
+            <p class="text-sm text-gray-400">Project generator tool</p>
+          </div>
+        </div>
+
+        <!-- Full Setup Example -->
+        <div
+          class="mt-12 bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden"
+        >
+          <div
+            class="bg-gradient-to-r from-cyan-900/20 via-pink-900/20 to-purple-900/20 px-6 py-3 border-b border-slate-700/50"
+          >
+            <span class="text-sm text-gray-400">Complete Setup with CLI</span>
+          </div>
+          <pre
+            class="p-6 overflow-x-auto"><code class="text-sm">{`# Install CLI globally
 npm install -g katax-cli
 
-# optional peer deps for katax-service-manager
-npm install pg mysql2 mongodb redis socket.io dotenv node-cron pino-pretty`}</code></pre>
-        </section>
+# Create new API project
+katax init my-api
 
-        <!-- ═══ KATAX-CORE ═══ -->
+# Generate a CRUD endpoint
+katax generate-crud products
 
-        <section id="core" class="doc-section">
-          <div class="section-accent"></div>
-          <h2><span class="section-icon">&#9679;</span> katax-core</h2>
-          <p>
-            <strong>katax-core</strong> is the validation layer. The entry point is
-            <code>k</code>. Supports 20+ schema types, coercion, preprocess,
-            async validators, composition and error utilities.
-          </p>
+# Start development
+npm run dev`}</code></pre>
+        </div>
+      </div>
+    </section>
 
-          <h3>Quick Start</h3>
-          <pre><code>{`import { k, type kataxInfer } from 'katax-core';
+    <!-- Examples Section -->
+    <section id="examples" class="py-20 px-4">
+      <div class="container mx-auto max-w-6xl">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent"
+        >
+          Quick Examples
+        </h2>
 
-const UserSchema = k.object({
-  email: k.email(),
+        <!-- Katax Core - Validation Example -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
+            <span class="text-cyan-400">01.</span> katax-core - Request Validation
+          </h3>
+          <div
+            class="bg-slate-900/50 border border-cyan-700/50 rounded-xl overflow-hidden backdrop-blur-sm"
+          >
+            <div class="bg-cyan-900/20 px-6 py-3 border-b border-cyan-700/50">
+              <span class="text-sm text-gray-400"
+                >TypeScript - Schema Validation</span
+              >
+            </div>
+            <pre
+              class="p-6 overflow-x-auto"><code class="text-sm">{`import { k, type kataxInfer } from 'katax-core';
+
+const createUserSchema = k.object({
   name: k.string().minLength(2).maxLength(100),
-  age: k.number().min(18).optional(),
-});
-
-type User = kataxInfer<typeof UserSchema>;
-
-const result = UserSchema.safeParse(req.body);
-if (!result.success) return res.status(400).json({ errors: result.issues });`}</code></pre>
-
-          <h3>Core Types</h3>
-          <pre><code>{`type SafeParseResult<T> = 
-  | { success: true; data: T }
-  | { success: false; issues: Issue[] }
-
-interface Issue {
-  path: (string | number)[];
-  message: string;
-}
-
-interface ValidationResult {
-  valid: boolean;
-  issues: Issue[];
-}`}</code></pre>
-
-          <h3>Schema API</h3>
-          <p>
-            All schemas implement: <code>parse(input): T</code> &middot; <code
-              >safeParse(input): SafeParseResult&lt;T&gt;</code
-            > &middot; <code>validate(input): ValidationResult</code> &middot; <code
-              >parseAsync(input): Promise&lt;T&gt;</code
-            > &middot; <code
-              >safeParseAsync(input):
-              Promise&lt;AsyncSafeParseResult&lt;T&gt;&gt;</code
-            > &middot; <code
-              >isValidAsync(input): Promise&lt;AsyncValidationResult&gt;</code
-            > &middot; <code>hasAsyncValidation(): boolean</code> &middot; <code
-              >kataxInfer: T</code>
-          </p>
-
-          <h3>All k factories</h3>
-          <pre><code>{`k.string()    k.number()    k.boolean()    k.date()     k.twoDates()
-k.object()    k.array()     k.tuple()      k.record()
-k.union()     k.intersection()            k.lazy()
-k.email()     k.file()      k.base64()
-k.custom()    k.literal()   k.enum()
-k.any()       k.unknown()   k.never()
-k.coerce      k.preprocess()`}</code></pre>
-
-          <h3>Modifiers (chainable, all schemas)</h3>
-          <pre><code>{`schema.optional()             // T | undefined
-schema.nullable()             // T | null
-schema.nullish()              // T | null | undefined
-schema.default(value)         // Returns default if undefined
-schema.catch(value)           // Return fallback on validation failure
-schema.transform(fn)          // Transform output type
-schema.brand("Name")          // Nominal typing
-schema.refine(fn, msg?)       // Custom refinement`}</code></pre>
-        </section>
-
-        <!-- ── String Schema ── -->
-        <section id="core-string" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> String &mdash; <code
-              >k.string()</code>
-          </h2>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>minLength(n, msg?)</code></td><td
-                    >Minimum length</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>maxLength(n, msg?)</code></td><td
-                    >Maximum length</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>length(n, msg?)</code></td><td>Exact length</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>email(msg?)</code></td><td>Valid email format</td
-                  ></tr
-                >
-                <tr><td><code>url(msg?)</code></td><td>Valid URL</td></tr>
-                <tr
-                  ><td><code>uuid(msg?)</code></td><td>Valid UUID (RFC 4122)</td
-                  ></tr
-                >
-                <tr><td><code>ip(msg?)</code></td><td>Valid IPv4</td></tr>
-                <tr
-                  ><td><code>regex(pattern, msg?)</code></td><td>Regex match</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>startsWith(prefix, msg?)</code></td><td
-                    >Must start with string</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>endsWith(suffix, msg?)</code></td><td
-                    >Must end with string</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>includes(substr, msg?)</code></td><td
-                    >Must include substring</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>oneOf(arr, msg?)</code></td><td
-                    >Must be one of the options</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>notOneOf(arr, msg?)</code></td><td
-                    >Must not be any of the options</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>lowercase(msg?)</code></td><td>Lowercase only</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>uppercase(msg?)</code></td><td>Uppercase only</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>alpha(msg?)</code></td><td
-                    >Letters only [A-Za-z]</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>alphanumeric(msg?)</code></td><td
-                    >Letters and numbers</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>ascii(msg?)</code></td><td
-                    >ASCII characters only</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>noWhitespace(msg?)</code></td><td>No spaces</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>nonempty(msg?)</code></td><td>Cannot be empty</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>trim()</code></td><td
-                    >No leading/trailing spaces (no msg param)</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- ── Number Schema ── -->
-        <section id="core-number" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Number &mdash; <code
-              >k.number()</code>
-          </h2>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>min(value, msg?)</code></td><td
-                    >Minimum value (&gt;=)</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>max(value, msg?)</code></td><td
-                    >Maximum value (&lt;=)</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>length(exact, msg?)</code></td><td>Exact value</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>positive(msg?)</code></td><td>Must be &gt; 0</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>negative(msg?)</code></td><td>Must be &lt; 0</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>nonnegative(msg?)</code></td><td>Must be &gt;= 0</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>nonpositive(msg?)</code></td><td>Must be &lt;= 0</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>integer(msg?)</code></td><td>Must be integer</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>finite(msg?)</code></td><td>Must be finite</td></tr
-                >
-                <tr
-                  ><td><code>multipleOf(factor, msg?)</code></td><td
-                    >Multiple of</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>between(min, max, msg?)</code></td><td
-                    >Inclusive range</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>greaterThan(n, msg?)</code></td><td
-                    >Strictly greater than</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>lessThan(n, msg?)</code></td><td
-                    >Strictly less than</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>notEqual(n, msg?)</code></td><td
-                    >Not equal to value</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>oneOf(arr, msg?)</code></td><td
-                    >Must be one option</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>notOneOf(arr, msg?)</code></td><td
-                    >Must not be any option</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>nonempty(msg?)</code></td><td>Alias for min(1)</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- ── Boolean Schema ── -->
-        <section id="core-boolean" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Boolean &mdash; <code
-              >k.boolean()</code>
-          </h2>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>isTrue(msg?)</code></td><td
-                    >Must be <code>true</code></td
-                  ></tr
-                >
-                <tr
-                  ><td><code>isFalse(msg?)</code></td><td
-                    >Must be <code>false</code></td
-                  ></tr
-                >
-                <tr
-                  ><td><code>equals(val, msg?)</code></td><td
-                    >Must equal the value</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- ── Object Schema ── -->
-        <section id="core-object" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Object &mdash; <code
-              >k.object(shape)</code>
-          </h2>
-          <p>
-            By default, extra keys are <strong>stripped</strong>. Use <code
-              >passthrough()</code
-            > to keep them or <code>strict()</code> to reject them.
-          </p>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>extend(extension)</code></td><td
-                    >Add or override fields</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>merge(other)</code></td><td
-                    >Merge two object schemas</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>pick([keys])</code></td><td
-                    >Select specific fields</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>omit([keys])</code></td><td
-                    >Exclude specific fields</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>partial()</code></td><td>All fields optional</td
-                  ></tr
-                >
-                <tr><td><code>strict()</code></td><td>Reject extra keys</td></tr
-                >
-                <tr
-                  ><td><code>passthrough()</code></td><td
-                    >Allow extra keys in output</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>strip()</code></td><td
-                    >Remove extra keys (default)</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>getShape()</code></td><td>Get raw shape object</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>caseInsensitive()</code></td><td
-                    >Case-insensitive key matching</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-          <pre><code>{`const schema = k.object({
-  name: k.string().minLength(2),
-  age: k.number().min(18).optional(),
-}).strict();`}</code></pre>
-        </section>
-
-        <!-- ── Array Schema ── -->
-        <section id="core-array" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Array &mdash; <code
-              >k.array(elementSchema?)</code>
-          </h2>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>minLength(n, msg?)</code></td><td
-                    >Minimum length</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>maxLength(n, msg?)</code></td><td
-                    >Maximum length</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>length(n, msg?)</code></td><td>Exact length</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>notEmpty(msg?)</code></td><td>Cannot be empty</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>min(n, msg?)</code></td><td
-                    >Alias for minLength</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>max(n, msg?)</code></td><td
-                    >Alias for maxLength</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>unique(msg?)</code></td><td
-                    >Unique elements (deep equality)</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>contains(element, msg?)</code></td><td
-                    >Must contain element</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- ── Email Schema ── -->
-        <section id="core-email" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Email &mdash; <code
-              >k.email()</code>
-          </h2>
-          <p>RFC 5322 compliant validation.</p>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>domain(domain, msg?)</code></td><td
-                    >Restrict to specific domain</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>domains([domains], msg?)</code></td><td
-                    >Multiple allowed domains</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>domainPattern(pattern, msg?)</code></td><td
-                    >Domain regex pattern</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>notDomains([blacklist], msg?)</code></td><td
-                    >Domain blacklist</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>localMinLength(n, msg?)</code></td><td
-                    >Min local part length</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>localMaxLength(n, msg?)</code></td><td
-                    >Max local part length</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>localPattern(regex, msg?)</code></td><td
-                    >Local part pattern</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>corporate(msg?)</code></td><td
-                    >Block free providers</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>noPlus(msg?)</code></td><td
-                    >Forbid '+' addressing</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>noDots(msg?)</code></td><td
-                    >Forbid '.' in local part</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- ── Date & TwoDates ── -->
-        <section id="core-date" class="doc-section">
-          <div class="section-accent"></div>
-          <h2><span class="section-icon">&#9679;</span> Date &amp; TwoDates</h2>
-          <h3><code>k.date()</code></h3>
-          <p>
-            Input: ISO 8601. Output: <code>Date</code> object. Uses <code
-              >date-fns</code
-            >.
-          </p>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>min(dateStr, msg?)</code></td><td
-                    >On or after the date</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>max(dateStr, msg?)</code></td><td
-                    >On or before the date</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>between(start, end, msg?)</code></td><td
-                    >Inclusive range</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>isFuture(msg?)</code></td><td
-                    >Must be in the future</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>isPast(msg?)</code></td><td>Must be in the past</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>format(formatStr, msg?)</code></td><td
-                    >Must match format</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>isDateOnly(msg?)</code></td><td
-                    >Date only (YYYY-MM-DD)</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>hasTime(msg?)</code></td><td>Must include time</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>formatOutput(format)</code></td><td
-                    >Output as formatted string</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-
-          <h3><code>k.twoDates(separator?)</code></h3>
-          <p>
-            Input: Two ISO dates separated by separator (default <code>'|'</code
-            >). Output: <code>[Date, Date]</code>.
-          </p>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>maxDifference(days, msg?)</code></td><td
-                    >Max days apart</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>minDifference(days, msg?)</code></td><td
-                    >Min days apart</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>maxDifferenceHours(hours, msg?)</code></td><td
-                    >Max hours apart</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>minDifferenceHours(hours, msg?)</code></td><td
-                    >Min hours apart</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>order(ascending?, msg?)</code></td><td
-                    >Chronological order (default asc)</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- ── File Schema ── -->
-        <section id="core-file" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> File &mdash; <code
-              >k.file()</code>
-          </h2>
-          <p>Compatible with Browser File API and Node.js Multer objects.</p>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>maxSize(bytes, msg?)</code></td><td
-                    >Maximum size</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>minSize(bytes, msg?)</code></td><td
-                    >Minimum size</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>type(mimeType, msg?)</code></td><td
-                    >Exact MIME type</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>types([mimeTypes], msg?)</code></td><td
-                    >Multiple MIME types</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>typePattern(pattern, msg?)</code></td><td
-                    >MIME pattern (<code>image/*</code>)</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>extension(ext, msg?)</code></td><td
-                    >File extension</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>extensions([exts], msg?)</code></td><td
-                    >Multiple extensions</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>namePattern(regex, msg?)</code></td><td
-                    >Filename regex</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>image(msg?)</code></td><td
-                    >Shortcut: <code>image/*</code></td
-                  ></tr
-                >
-                <tr
-                  ><td><code>video(msg?)</code></td><td
-                    >Shortcut: <code>video/*</code></td
-                  ></tr
-                >
-                <tr
-                  ><td><code>audio(msg?)</code></td><td
-                    >Shortcut: <code>audio/*</code></td
-                  ></tr
-                >
-                <tr
-                  ><td><code>document(msg?)</code></td><td
-                    >Shortcut: PDF, Word, Excel, plaintext</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- ── Base64 Schema ── -->
-        <section id="core-base64" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Base64 &mdash; <code
-              >k.base64()</code>
-          </h2>
-          <p>Validates base64-encoded strings, including data URLs.</p>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>minDecodedSize(bytes, msg?)</code></td><td
-                    >Min decoded size</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>maxDecodedSize(bytes, msg?)</code></td><td
-                    >Max decoded size</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>mimeType(type, msg?)</code></td><td
-                    >Exact data URL MIME type</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>mimeTypePattern(pattern, msg?)</code></td><td
-                    >MIME pattern</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>image(msg?)</code></td><td
-                    >Shortcut: <code>image/*</code></td
-                  ></tr
-                >
-                <tr
-                  ><td><code>pdf(msg?)</code></td><td
-                    >Shortcut: <code>application/pdf</code></td
-                  ></tr
-                >
-                <tr
-                  ><td><code>json(msg?)</code></td><td
-                    >Decoded must be valid JSON</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>dataUrl(msg?)</code></td><td>Must be data URL</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- ── Composition ── -->
-        <section id="core-composition" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Union / Intersection / Lazy
-          </h2>
-          <pre><code>{`// Union — at least one schema must match (short-circuit)
-k.union([k.string(), k.number()])
-
-// Intersection — ALL schemas must match (merge objects)
-k.intersection([
-  k.object({ id: k.number() }),
-  k.object({ name: k.string() })
-])
-
-// Lazy — deferred resolution for recursive types
-const categorySchema = k.lazy(() =>
-  k.object({
-    name: k.string(),
-    subcategories: k.array(categorySchema)
+  email: k.email().corporate(),
+  age: k.number().min(18).max(100),
+  roles: k.array(k.enum(['admin', 'user', 'moderator'] as const)),
+  acceptedTerms: k.boolean().refine(val => val === true, {
+    message: 'Must accept terms'
   })
-);`}</code></pre>
-        </section>
-
-        <!-- ── Extras ── -->
-        <section id="core-extras" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Literal / Enum / Tuple / Record
-            / Any / Unknown / Never
-          </h2>
-          <pre><code>{`k.literal('active')               // Exact value (===)
-k.enum(['active', 'inactive'])    // String union
-k.tuple([k.number(), k.string()]) // Fixed-length typed array
-k.record(k.number())              // Record<string, number>
-k.any()                           // Accepts everything
-k.unknown()                       // Accepts everything (forces narrowing)
-k.never()                         // Never matches`}</code></pre>
-        </section>
-
-        <!-- ── Custom ── -->
-        <section id="core-custom" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Custom &mdash; <code
-              >k.custom&lt;T&gt;(validator)</code>
-          </h2>
-          <pre><code>{`const positiveEven = k.custom<number>((value, path) => {
-  if (typeof value !== 'number')
-    return [{ path, message: 'Must be number' }];
-  if (value <= 0 || value % 2 !== 0)
-    return [{ path, message: 'Must be positive even' }];
-  return value;
 });
 
-// Add refinement
-positiveEven.refine((v) => v < 1000, 'Must be less than 1000');`}</code></pre>
-        </section>
+// Type inference
+type CreateUserData = kataxInfer<typeof createUserSchema>;
 
-        <!-- ── Modifiers / Coerce / Preprocess ── -->
-        <section id="core-modifiers" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Modifiers / Coercion / Preprocess
-          </h2>
-
-          <h3>Coercion &mdash; <code>k.coerce</code></h3>
-          <p>Auto-converts types before validating:</p>
-          <pre><code>{`k.coerce.number()   // "42" → 42, true → 1, false → 0
-k.coerce.boolean()  // "true"/"1"/"yes" → true, "false"/"0"/"no" → false
-k.coerce.string()   // 42 → "42", true → "true", null → ""
-k.coerce.date()     // ISO string → Date, timestamp → Date
-
-// Proxy validation methods available:
-k.coerce.number().positive().integer()
-k.coerce.boolean().isTrue()
-k.coerce.string().minLength(3).email()
-k.coerce.date().isFuture()`}</code></pre>
-
-          <h3>Preprocess &mdash; <code>k.preprocess(fn, schema)</code></h3>
-          <pre><code>{`k.preprocess(
-  (val) => typeof val === 'string' ? val.trim().toLowerCase() : val,
-  k.string().email()
-)`}</code></pre>
-
-          <h3>Error Utilities</h3>
-          <pre><code>{`import { createIssue, issues, mergeIssues, isIssueArray, KataxError } from 'katax-core';
-
-createIssue(['field'], 'error message');   // Issue object
-issues(['field'], 'error message');         // Issue[]
-mergeIssues(arr1, arr2);                    // Merge issue arrays
-isIssueArray(value);                        // Type guard
-
-// KataxError is thrown by parse()/parseAsync()
-throw new KataxError(result.issues);`}</code></pre>
-        </section>
-
-        <!-- ── Async Validation ── -->
-        <section id="core-async" class="doc-section">
-          <div class="section-accent"></div>
-          <h2><span class="section-icon">&#9679;</span> Async Validation</h2>
-          <pre><code>{`const usernameSchema = k.string().minLength(3).asyncRefine(async (value, path) => {
-  const exists = await usersRepo.existsByUsername(value);
-  return exists ? [{ path, message: 'Already taken' }] : [];
-});
-
-const result = await usernameSchema.safeParseAsync(input);
-
-// Also available:
-await schema.parseAsync(input);      // Throws KataxError
-await schema.isValidAsync(input);    // { valid, issues }`}</code></pre>
-        </section>
-
-        <!-- ═══ KATAX-SERVICE-MANAGER ═══ -->
-
-        <section id="sm" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> katax-service-manager
-          </h2>
-          <p>
-            Singleton container that manages config, logger, databases,
-            WebSocket, cron, cache, registry, health, and graceful shutdown.
-          </p>
-
-          <div class="reference-grid">
-            <article class="reference-card">
-              <h4>Core</h4>
-              <ul>
-                <li>
-                  <code>Katax</code> class &mdash; <code>katax</code> singleton
-                </li>
-                <li><code>new Katax()</code> isolated instances</li>
-                <li>
-                  <code>Katax.getInstance()</code> / <code>Katax.reset()</code>
-                </li>
-              </ul>
-              <h4>Services</h4>
-              <ul>
-                <li>
-                  <code>ConfigService</code> &middot; <code>LoggerService</code>
-                </li>
-                <li>
-                  <code>DatabaseService</code> &middot; <code
-                    >WebSocketService</code>
-                </li>
-                <li>
-                  <code>CronService</code> &middot; <code>CacheService</code>
-                </li>
-                <li>
-                  <code>RegistryService</code> &middot; <code
-                    >RedisStreamBridgeService</code>
-                </li>
-              </ul>
-            </article>
-            <article class="reference-card">
-              <h4>Errors</h4>
-              <ul>
-                <li><code>KataxServiceError</code> (base)</li>
-                <li>
-                  <code>KataxConfigError</code> &middot; <code
-                    >KataxDatabaseError</code>
-                </li>
-                <li>
-                  <code>KataxRedisError</code> &middot; <code
-                    >KataxWebSocketError</code>
-                </li>
-                <li>
-                  <code>KataxRegistryError</code> &middot; <code
-                    >KataxNotInitializedError</code>
-                </li>
-              </ul>
-              <h4>Transports</h4>
-              <ul>
-                <li>
-                  <code>RedisTransport</code> &middot; <code
-                    >CallbackTransport</code>
-                </li>
-                <li><code>TelegramTransport</code></li>
-              </ul>
-              <h4>Helpers</h4>
-              <ul>
-                <li><code>registerVersionToRedis</code></li>
-                <li>
-                  <code>startHeartbeat</code> &middot; <code
-                    >registerProjectInRedis</code>
-                </li>
-              </ul>
-            </article>
-          </div>
-        </section>
-
-        <!-- ── Init / Env / Lifecycle ── -->
-        <section id="sm-init" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Initialization, Environment
-            &amp; Lifecycle
-          </h2>
-
-          <h3>Init</h3>
-          <pre><code>{`import { katax } from 'katax-service-manager';
-
-await katax.init({
-  loadEnv: true,
-  appName: 'my-api',
-  logger: { level: 'info', prettyPrint: true, enableBroadcast: false },
-  hooks: {
-    beforeInit: () => {},
-    afterInit: () => {},
-    beforeShutdown: () => {},
-    afterShutdown: () => {},
-    onError: (context, error) => {},
-  },
-  registry: { url: 'https://dashboard.example.com/api/services' },
-});`}</code></pre>
-
-          <h3>Environment Helpers</h3>
-          <pre><code>{`katax.env('PORT', '3000');        // string with default
-katax.env('PORT', 3000);          // number (auto-cast)
-katax.env('DEBUG', false);        // boolean (auto-cast)
-katax.envRequired('JWT_SECRET');  // throws if missing
-
-katax.isDev    katax.isProd    katax.isTest
-katax.nodeEnv  katax.appName   katax.version
-katax.isInitialized`}</code></pre>
-
-          <h3>Overrides (testing)</h3>
-          <pre><code>{`import { Katax } from 'katax-service-manager';
-beforeEach(() => Katax.reset());
-
-katax.overrideService('db:main', mockDb);
-katax.overrideService('logger', mockLogger);
-katax.clearOverride('db:main');   // Remove specific
-katax.clearOverride();            // Remove all`}</code></pre>
-
-          <h3>Shutdown &amp; Hooks</h3>
-          <pre><code>{`katax.onShutdown(async () => {
-  await cleanupCustomResource();
-});
-
-await katax.shutdown();
-// Closes all services in order: hooks, DB, WS, cron, registry, bridges
-// SIGTERM and SIGINT are handled automatically`}</code></pre>
-        </section>
-
-        <!-- ── Database ── -->
-        <section id="sm-db" class="doc-section">
-          <div class="section-accent"></div>
-          <h2><span class="section-icon">&#9679;</span> Database Service</h2>
-          <p>
-            Supports PostgreSQL, MySQL, MongoDB, and Redis with typed
-            connections and configurable pool.
-          </p>
-
-          <h3>Setup</h3>
-          <pre><code>{`// PostgreSQL / MySQL
-const db = await katax.database({
-  name: 'main', type: 'postgresql',
-  connection: { host: 'localhost', port: 5432, database: 'myapp', user: 'admin', password: 'secret' },
-  pool: { max: 10, min: 2 },
-});
-
-// MongoDB
-const mongo = await katax.database({
-  name: 'analytics', type: 'mongodb',
-  connection: { host: 'localhost', port: 27017, database: 'analytics' },
-});
-
-// Redis
-const redis = await katax.database({
-  name: 'cache', type: 'redis',
-  connection: { host: '127.0.0.1', port: 6379 },
-});`}</code></pre>
-
-          <h3>Typed Access</h3>
-          <pre><code>{`const db = katax.db('main');
-
-db.asSql()    // ISqlDatabase — query<T>(sql, params?), getClient(), close()
-db.asMongo()  // IMongoDatabase — getClient(), close()
-db.asRedis()  // IRedisDatabase — redis(...args), close()
-
-// SQL query
-const users = await db.asSql().query<User[]>('SELECT * FROM users WHERE id = $1', [userId]);
-
-// Redis command
-await db.asRedis().redis('SET', 'key', 'value', 'EX', '60');
-await db.asRedis().redis('GET', 'key');`}</code></pre>
-        </section>
-
-        <!-- ── Cache ── -->
-        <section id="sm-cache" class="doc-section">
-          <div class="section-accent"></div>
-          <h2><span class="section-icon">&#9679;</span> Cache Service</h2>
-          <p>High-level Redis wrapper with automatic JSON serialization.</p>
-          <pre><code>{`const cache = katax.cache('cache'); // Redis connection name`}</code></pre>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>get&lt;T&gt;(key)</code></td><td
-                    >Get value (auto-deserializes JSON)</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>set(key, value, ttl?)</code></td><td
-                    >Store with optional TTL (seconds)</td
-                  ></tr
-                >
-                <tr><td><code>del(key)</code></td><td>Delete single key</td></tr
-                >
-                <tr
-                  ><td><code>delMany(keys[])</code></td><td
-                    >Delete multiple keys</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>exists(key)</code></td><td>Check if key exists</td
-                  ></tr
-                >
-                <tr><td><code>ttl(key)</code></td><td>Remaining TTL</td></tr>
-                <tr
-                  ><td><code>expire(key, seconds)</code></td><td
-                    >Set expiration on existing key</td
-                  ></tr
-                >
-                <tr><td><code>incr(key)</code></td><td>Increment by 1</td></tr>
-                <tr
-                  ><td><code>incrBy(key, n)</code></td><td>Increment by n</td
-                  ></tr
-                >
-                <tr><td><code>decr(key)</code></td><td>Decrement by 1</td></tr>
-                <tr
-                  ><td><code>mget&lt;T&gt;(keys[])</code></td><td
-                    >Get multiple values</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>mset(entries[])</code></td><td
-                    >Store multiple [key, value] pairs</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>clear(pattern?)</code></td><td
-                    >Delete by pattern</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>stats()</code></td><td>Redis INFO statistics</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-          <pre><code>{`await cache.set('user:123', userData, 3600);
-const user = await cache.get<User>('user:123');
-await cache.del('user:123');
-await cache.incr('page:views');
-await cache.mset([['k1', v1], ['k2', v2]]);`}</code></pre>
-        </section>
-
-        <!-- ── Logger ── -->
-        <section id="sm-logger" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Logger &amp; Transports
-          </h2>
-          <p>
-            Pino-based structured logging with WebSocket broadcast and transport
-            system.
-          </p>
-
-          <pre><code>{`// All log levels
-katax.logger.trace('trace message');
-katax.logger.debug('debug message');
-katax.logger.info({ message: 'Server started', port: 3000 });
-katax.logger.warn({ message: 'High memory', percent: 85 });
-katax.logger.error({ message: 'Query failed', error: err });
-katax.logger.fatal('fatal error');
-
-// Child logger with context
-const log = katax.logger.child({ service: 'payments', userId: 123 });
-log.info({ message: 'Payment processed' });
-
-// Broadcast to WebSocket
-katax.logger.info({ message: 'Trade executed', broadcast: true, room: 'admins' });`}</code></pre>
-
-          <h3>Transports</h3>
-          <pre><code>{`import { RedisTransport, TelegramTransport, CallbackTransport } from 'katax-service-manager';
-
-// Redis transport
-const redisTransport = new RedisTransport(katax.db('cache'), {
-  streamKey: 'katax:logs', name: 'redis-errors',
-});
-redisTransport.filter = (log) => log.level === 'error' || log.persist === true;
-katax.logger.addTransport(redisTransport);
-
-// Telegram
-const telegram = new TelegramTransport({
-  botToken: katax.envRequired('TELEGRAM_BOT_TOKEN'),
-  chatId: katax.envRequired('TELEGRAM_ALERTS_CHAT_ID'),
-  levels: ['error', 'fatal'],
-  includePersist: true, parseMode: 'Markdown',
-});
-katax.logger.addTransport(telegram);
-
-// Management
-katax.logger.removeTransport('telegram-errors');
-await katax.logger.closeTransports();`}</code></pre>
-        </section>
-
-        <!-- ── WebSocket ── -->
-        <section id="sm-ws" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> WebSocket (Socket.IO)
-          </h2>
-          <pre><code>{`// Shared with Express (preferred)
-const httpServer = createServer(app);
-await katax.socket({
-  name: 'main', httpServer,
-  cors: { origin: '*' },
-});
-
-// Standalone with auth
-await katax.socket({
-  name: 'events', port: 3001,
-  enableAuth: true,
-  authValidator: async (token) => token === katax.envRequired('WS_SECRET'),
-});
-
-const ws = katax.ws('main');`}</code></pre>
-
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:30%">Method</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>emit(event, data, room?)</code></td><td
-                    >Emit event (optionally to room)</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>emitToRoom(room, event, data)</code></td><td
-                    >Emit to specific room</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>on(event, handler)</code></td><td
-                    >Listen for events</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>onConnection(handler)</code></td><td
-                    >Handle new connections</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>hasRoomListeners(room)</code></td><td
-                    >Has listeners in room?</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>getRoomClientsCount(room)</code></td><td
-                    >Clients in room</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>hasConnectedClients()</code></td><td
-                    >Any clients connected?</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>getConnectedClientsCount()</code></td><td
-                    >Total connected clients</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>close()</code></td><td>Close WebSocket server</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>getServer()</code></td><td
-                    >Underlying Socket.IO Server</td
-                  ></tr
-                >
-              </tbody>
-            </table>
-          </div>
-
-          <pre><code>{`ws.onConnection((socket) => {
-  socket.on('message', (data) => { ... });
-  socket.emit('welcome', { status: 'connected' });
-  socket.join('room-123');
-  socket.leave('room-123');
-});`}</code></pre>
-        </section>
-
-        <!-- ── Cron ── -->
-        <section id="sm-cron" class="doc-section">
-          <div class="section-accent"></div>
-          <h2><span class="section-icon">&#9679;</span> Cron Service</h2>
-          <pre><code>{`katax.cron({
-  name: 'process-assets',
-  schedule: '*/10 6-15 * * 1-5',
-  task: processAssets,
-  runOnInit: katax.isProd,
-  timezone: 'America/Mexico_City',
-  enabled: true,
-});
-
-// Advanced management
-katax.cronService.getJobs();
-katax.cronService.startJob('process-assets');
-katax.cronService.stopJob('process-assets');
-katax.cronService.removeJob('process-assets');
-katax.cronService.stopAll();`}</code></pre>
-        </section>
-
-        <!-- ── Registry / Health ── -->
-        <section id="sm-registry" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Registry &amp; Health Check
-          </h2>
-
-          <pre><code>{`await katax.init({
-  registry: {
-    url: 'https://dashboard.example.com/api/services',
-    apiKey: katax.env('REGISTRY_KEY'),
-    heartbeatInterval: 30000,
-    requestTimeoutMs: 5000,
-    retryAttempts: 2,
-    retryBaseDelayMs: 300,
-    metadata: { env: katax.nodeEnv, region: 'us-east' },
-  },
-});
-
-// Or custom handler
-registry: {
-  handler: {
-    register: async (info) => { ... },
-    heartbeat: async (info) => { ... },
-    unregister: async (payload) => { ... },
+// In your Express handler
+export async function createUser(req: Request, res: Response) {
+  const result = createUserSchema.safeParse(req.body);
+  
+  if (!result.success) {
+    return res.status(400).json({ errors: result.issues });
   }
-}
+  
+  // result.data is fully typed
+  const user = await database.createUser(result.data);
+  res.status(201).json(user);
+}`}</code></pre>
+          </div>
+        </div>
 
-katax.isRegistered;         // boolean
-katax.getServiceInfo();     // ServiceInfo | null`}</code></pre>
+        <!-- Katax Service Manager - Bootstrap Example -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
+            <span class="text-pink-400">02.</span> katax-service-manager - Bootstrap
+            Setup
+          </h3>
+          <div
+            class="bg-slate-900/50 border border-pink-700/50 rounded-xl overflow-hidden backdrop-blur-sm"
+          >
+            <div class="bg-pink-900/20 px-6 py-3 border-b border-pink-700/50">
+              <span class="text-sm text-gray-400"
+                >TypeScript - Service Container</span
+              >
+            </div>
+            <pre
+              class="p-6 overflow-x-auto"><code class="text-sm">{`import { Katax } from 'katax-service-manager';
 
-          <h3>Health Check</h3>
-          <pre><code>{`const health = await katax.healthCheck();
-// { status: 'healthy' | 'degraded' | 'unhealthy',
-//   services: { databases: {}, sockets: {}, cron: boolean },
-//   timestamp: number }`}</code></pre>
-        </section>
-
-        <!-- ── Bridge / Heartbeat ── -->
-        <section id="sm-bridge" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Redis Stream Bridge &amp; Heartbeat
-          </h2>
-
-          <h3>Stream Bridge</h3>
-          <pre><code>{`const bridge = katax.bridge('cache', 'main', {
-  appName: 'my-api',
-  streamKey: 'katax:logs',
-  group: 'katax-bridge-my-api',
-  batchSize: 10,
-  blockTimeout: 2000,
+// Initialize once at app startup
+await Katax.getInstance().init({
+  loadEnv: true,  // Auto-load .env file
+  config: {
+    port: process.env.PORT || 3000,
+    env: 'production'
+  },
+  logger: {
+    level: 'info',
+    transports: {
+      redis: {
+        host: process.env.REDIS_HOST,
+        streamKey: 'app-logs'
+      }
+    }
+  },
+  database: {
+    type: 'postgresql',
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT || '5432'),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+  }
 });
-await bridge.start();
-bridge.isRunning();
-bridge.stop();`}</code></pre>
 
-          <h3>Heartbeat</h3>
-          <pre><code>{`// Managed (auto-cleanup on shutdown)
-katax.heartbeat(
-  { app: katax.appName, port: 3000, version: katax.version, intervalMs: 10000 },
-  'cache', 'main',
-);
+// Use anywhere in your app
+const katax = Katax.getInstance();
+katax.logger.info('Server starting');
+const users = await katax.db.query('SELECT * FROM users');
 
-// Manual helpers
-import { registerProjectInRedis, startHeartbeat } from 'katax-service-manager';
-await registerProjectInRedis(redisDb, { app: katax.appName, version: katax.version, port: PORT });
-const hb = startHeartbeat(redisDb, { app: katax.appName, port: PORT, intervalMs: 10000 }, ws);
-hb?.stop();`}</code></pre>
-        </section>
+// Graceful shutdown handled automatically
+katax.onShutdown(async () => {
+  katax.logger.info('Cleaning up...');
+  await cleanupResources();
+});`}</code></pre>
+          </div>
+        </div>
 
-        <!-- ── Bootstrap ── -->
-        <section id="sm-bootstrap" class="doc-section">
-          <div class="section-accent"></div>
-          <h2><span class="section-icon">&#9679;</span> Bootstrap Template</h2>
-          <pre><code>{`import dotenv from 'dotenv';
-dotenv.config();
+        <!-- Katax CLI - Project Generation -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
+            <span class="text-purple-400">03.</span> katax-cli - Generate Full API
+          </h3>
+          <div
+            class="bg-slate-900/50 border border-purple-700/50 rounded-xl overflow-hidden backdrop-blur-sm"
+          >
+            <div
+              class="bg-purple-900/20 px-6 py-3 border-b border-purple-700/50"
+            >
+              <span class="text-sm text-gray-400">Bash - CLI Commands</span>
+            </div>
+            <pre
+              class="p-6 overflow-x-auto"><code class="text-sm">{`# Install CLI globally
+npm install -g katax-cli
 
-import { katax } from 'katax-service-manager';
-import { createServer } from 'http';
-import app from './app.js';
+# Create new project with interactive prompts
+katax init my-api
+  ✓ Project name: my-api
+  ✓ Validation: katax-core
+  ✓ Database: PostgreSQL
+  ✓ Auth: JWT
+  ✓ WebSocket: Yes
 
-async function bootstrap(): Promise<void> {
+# Generate CRUD endpoints
+cd my-api
+katax generate-crud products
+  ✓ Created src/api/products/products.controller.ts
+  ✓ Created src/api/products/products.handler.ts
+  ✓ Created src/api/products/products.validator.ts
+  ✓ Created src/api/products/products.routes.ts
+  ✓ Updated src/router.ts
+
+# Add custom endpoint
+katax add-endpoint users/profile --method GET
+
+# Generate OpenAPI documentation
+katax generate-docs
+
+# Start development
+npm run dev
+# Server running on http://localhost:3000`}</code></pre>
+          </div>
+        </div>
+
+        <!-- Full Stack Example -->
+        <div class="mb-12">
+          <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
+            <span class="text-cyan-400">04.</span> Complete Endpoint (All 3 Packages)
+          </h3>
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden backdrop-blur-sm"
+          >
+            <div
+              class="bg-gradient-to-r from-cyan-900/20 via-pink-900/20 to-purple-900/20 px-6 py-3 border-b border-slate-700/50"
+            >
+              <span class="text-sm text-gray-400"
+                >TypeScript - Handler with Validation & Services</span
+              >
+            </div>
+            <pre
+              class="p-6 overflow-x-auto"><code class="text-sm">{`import { Request, Response } from 'express';
+import { k, type kataxInfer } from 'katax-core';
+import { Katax } from 'katax-service-manager';
+
+// Validation schema
+const createProductSchema = k.object({
+  name: k.string().minLength(3).maxLength(100),
+  price: k.number().min(0),
+  categoryId: k.number().integer(),
+  tags: k.array(k.string()).optional()
+});
+
+type CreateProductData = kataxInfer<typeof createProductSchema>;
+
+// Handler
+export async function createProduct(req: Request, res: Response) {
+  const katax = Katax.getInstance();
+  
+  // Validate request body
+  const validation = createProductSchema.safeParse(req.body);
+  if (!validation.success) {
+    return res.status(400).json({ errors: validation.issues });
+  }
+  
   try {
-    await katax.init({
-      loadEnv: true,
-      logger: { level: katax.env('LOG_LEVEL', 'info') as any, prettyPrint: katax.isDev, enableBroadcast: true },
-    });
-
-    await katax.database({
-      name: 'main', type: 'postgresql',
-      connection: {
-        host: katax.envRequired('DB_HOST'),
-        port: katax.env('DB_PORT', 5432),
-        database: katax.envRequired('DB_NAME'),
-        user: katax.envRequired('DB_USER'),
-        password: katax.envRequired('DB_PASSWORD'),
-      },
-      pool: { max: 10, min: 2 },
-    });
-
-    await katax.database({
-      name: 'cache', type: 'redis',
-      connection: { host: katax.env('REDIS_HOST', '127.0.0.1'), port: 6379 },
-    });
-
-    const PORT = katax.env('PORT', '3000');
-    const httpServer = createServer(app);
-    await katax.socket({ name: 'main', httpServer, cors: { origin: '*' } });
-
-    katax.cron({ name: 'cleanup', schedule: '0 3 * * *', task: async () => { /* nightly */ } });
-
-    httpServer.listen(PORT, () => {
-      katax.logger.info({ message: 'Server running on http://localhost:' + PORT });
-    });
-  } catch (err) {
-    console.error('Bootstrap failed:', err);
-    process.exit(1);
+    // Use database service
+    const result = await katax.db.query(
+      'INSERT INTO products (name, price, category_id) VALUES ($1, $2, $3) RETURNING *',
+      [validation.data.name, validation.data.price, validation.data.categoryId]
+    );
+    
+    // Log with service
+    katax.logger.info('Product created', { productId: result.rows[0].id });
+    
+    // Broadcast via WebSocket
+    katax.ws?.emit('product:created', result.rows[0]);
+    
+    return res.status(201).json(result.rows[0]);
+  } catch (error) {
+    katax.logger.error('Failed to create product', { error });
+    return res.status(500).json({ error: 'Internal server error' });
   }
-}
-
-void bootstrap();`}</code></pre>
-        </section>
-
-        <!-- ═══ KATAX-CLI ═══ -->
-
-        <section id="cli" class="doc-section">
-          <div class="section-accent"></div>
-          <h2><span class="section-icon">&#9679;</span> katax-cli</h2>
-          <p>
-            CLI for scaffolding Express + TypeScript APIs, generating
-            CRUD/endpoints/repositories, OpenAPI docs, and managing VPS
-            deployments with PM2.
-          </p>
-
-          <div class="cards">
-            <article class="card">
-              <h3>Scaffold <span>init</span></h3>
-              <p>
-                Complete Express + TypeScript project with interactive prompts
-                for DB, auth, validation, Swagger, WebSocket, Redis, and
-                deployment config.
-              </p>
-            </article>
-            <article class="card">
-              <h3>Generate <span>endpoint &amp; CRUD</span></h3>
-              <p>
-                Generates validators, controllers, handlers, and routes. Nested
-                resources supported. Auto-regenerates OpenAPI docs.
-              </p>
-            </article>
-            <article class="card">
-              <h3>Deploy <span>PM2</span></h3>
-              <p>
-                Full VPS deployment workflow: init (clone + PM2), update (pull +
-                restart), rollback, logs, and status.
-              </p>
-            </article>
+}`}</code></pre>
           </div>
-        </section>
+        </div>
+      </div>
+    </section>
 
-        <!-- ── CLI Commands ── -->
-        <section id="cli-commands" class="doc-section">
-          <div class="section-accent"></div>
-          <h2><span class="section-icon">&#9679;</span> Commands</h2>
-
-          <h3><code>katax init [project-name]</code></h3>
-          <p>Scaffolds a complete Express + TypeScript + katax-core project.</p>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:25%">Flag</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>-f, --force</code></td><td
-                    >Overwrite existing directory</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>--pm &lt;npm|pnpm&gt;</code></td><td
-                    >Package manager (default: pnpm)</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>--ignore-scripts</code></td><td
-                    >Disable lifecycle scripts</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>--write-npmrc</code></td><td
-                    >Write .npmrc for reproducible installs</td
-                  ></tr
-                >
-              </tbody>
-            </table>
+    <!-- Schema Types Overview -->
+    <section class="py-20 px-4 bg-slate-800/30">
+      <div class="container mx-auto max-w-5xl">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent"
+        >
+          Available Schemas
+        </h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
+            <h4 class="text-lg font-bold text-cyan-400 mb-3">String Schema</h4>
+            <pre
+              class="text-sm text-gray-300"><code>k.string()
+  .minLength(3)
+  .maxLength(50)
+  .email()
+  .url()
+  .regex(/^[a-zA-Z]+$/)</code></pre>
           </div>
-
-          <h3><code>katax add endpoint &lt;name&gt;</code></h3>
-          <p>
-            Add a new endpoint with validator, controller, handler, and routes.
-          </p>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:25%">Flag</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>-m, --method &lt;method&gt;</code></td><td
-                    >HTTP method (GET, POST, PUT, PATCH, DELETE)</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>-p, --path &lt;path&gt;</code></td><td
-                    >Custom route path</td
-                  ></tr
-                >
-              </tbody>
-            </table>
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
+            <h4 class="text-lg font-bold text-pink-400 mb-3">Number Schema</h4>
+            <pre
+              class="text-sm text-gray-300"><code>k.number()
+  .min(0)
+  .max(100)
+  .positive()
+  .integer()</code></pre>
           </div>
-
-          <h3><code>katax generate crud &lt;resource-name&gt;</code></h3>
-          <p>
-            Aliases: <code>gen</code>, <code>g</code>. Generates CRUD endpoints:
-            list, get by ID, create, update, delete.
-          </p>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:25%">Flag</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>--no-auth</code></td><td
-                    >Skip authentication middleware</td
-                  ></tr
-                >
-              </tbody>
-            </table>
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
+            <h4 class="text-lg font-bold text-cyan-400 mb-3">Date Schema</h4>
+            <pre
+              class="text-sm text-gray-300"><code>k.date()
+  .min('2024-01-01')
+  .max('2024-12-31')
+  .isFuture()
+  .isPast()</code></pre>
           </div>
-
-          <h3><code>katax generate repository &lt;name&gt;</code></h3>
-          <p>
-            Data access layer with typed methods: <code>findAll()</code>, <code
-              >findById()</code
-            >, <code>exists()</code>, <code>create()</code>, <code
-              >update()</code
-            >, <code>delete()</code>.
-          </p>
-
-          <h3><code>katax generate docs</code></h3>
-          <div class="table-wrapper">
-            <table>
-              <thead
-                ><tr><th style="width:25%">Flag</th><th>Description</th></tr
-                ></thead
-              >
-              <tbody>
-                <tr
-                  ><td><code>-f, --force</code></td><td>Force regeneration</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>-o, --output &lt;path&gt;</code></td><td
-                    >Output path (default: src/openapi.json)</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>-p, --port &lt;port&gt;</code></td><td
-                    >Server port</td
-                  ></tr
-                >
-                <tr
-                  ><td><code>-u, --url &lt;url&gt;</code></td><td
-                    >Production server URL</td
-                  ></tr
-                >
-              </tbody>
-            </table>
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
+            <h4 class="text-lg font-bold text-pink-400 mb-3">Email Schema</h4>
+            <pre
+              class="text-sm text-gray-300"><code>k.email()
+  .domain('company.com')
+  .corporate()
+  .noPlus()</code></pre>
           </div>
-
-          <h3><code>katax info</code></h3>
-          <p>
-            Aliases: <code>status</code>, <code>ls</code>. Shows project
-            structure, dependencies, and routes.
-          </p>
-
-          <h3>Deploy</h3>
-          <pre><code>{`katax deploy init       # Initial PM2 setup (repo, branch, path, cluster, memory, env)
-katax deploy update     # Pull, rebuild, restart
-  -b, --branch <branch>
-  --hard                # Hard reset
-  -a, --app-name <name>
-katax deploy rollback   # Revert commits
-  -c, --commits <n>     # Default: 1
-  -a, --app-name <name>
-katax deploy logs       # View PM2 logs
-  -l, --lines <n>
-  -f, --follow
-  -a, --app-name <name>
-katax deploy status     # Show PM2 apps`}</code></pre>
-
-          <h3>Fix</h3>
-          <pre><code>{`katax fix docs        # Patch build script to copy openapi.json
-  --skip-install
-katax fix all         # Apply all fixes
-katax fix list        # List available patches`}</code></pre>
-
-          <h3>Global Options</h3>
-          <pre><code>{`--no-color     # Disable colored output
---verbose      # Enable verbose logging
--v, --version  # Show version`}</code></pre>
-
-          <h3>Examples</h3>
-          <pre><code>{`katax init my-api --pm pnpm --ignore-scripts --write-npmrc
-katax add endpoint admin/audit/logs -m POST
-katax generate crud admin/users --no-auth
-katax generate repository products
-katax generate docs -u https://api.example.com
-katax deploy update -b production --hard`}</code></pre>
-        </section>
-
-        <!-- ── Generators / Templates ── -->
-        <section id="cli-generators" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Generators &amp; Templates
-          </h2>
-
-          <div class="reference-grid">
-            <article class="reference-card">
-              <h4>Validator Generator</h4>
-              <p>
-                <code>k.object()</code> schemas with per-field validation, async validators
-                and <code>kataxInfer</code> inference.
-              </p>
-            </article>
-            <article class="reference-card">
-              <h4>Controller Generator</h4>
-              <p>
-                Business logic with <code>ControllerResult&lt;T&gt;</code>, <code
-                  >createSuccessResult()</code
-                >, <code>createErrorResult()</code>.
-              </p>
-            </article>
-            <article class="reference-card">
-              <h4>Handler Generator</h4>
-              <p>
-                Express middleware chaining validator + controller with <code
-                  >sendResponse()</code
-                >.
-              </p>
-            </article>
-            <article class="reference-card">
-              <h4>Route Generator</h4>
-              <p>Express Router with method calls and JSDoc documentation.</p>
-            </article>
-            <article class="reference-card">
-              <h4>Router Updater</h4>
-              <p>
-                AST-based update of main <code>routes.ts</code>. Prevents
-                duplicates.
-              </p>
-            </article>
-            <article class="reference-card">
-              <h4>OpenAPI Generator</h4>
-              <p>Scans validators and routes, generates OpenAPI 3.0 spec.</p>
-            </article>
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
+            <h4 class="text-lg font-bold text-cyan-400 mb-3">Array Schema</h4>
+            <pre
+              class="text-sm text-gray-300"><code>k.array(k.string())
+  .minLength(1)
+  .maxLength(10)
+  .unique()</code></pre>
           </div>
-
-          <h3>Shared Utilities</h3>
-          <div class="reference-grid">
-            <article class="reference-card">
-              <h4>Response Utils</h4>
-              <ul>
-                <li><code>sendSuccess&lt;T&gt;()</code></li>
-                <li>
-                  <code>sendError()</code> &middot; <code
-                    >sendValidationError()</code>
-                </li>
-                <li><code>sendResult&lt;T,E&gt;()</code></li>
-                <li><code>sendResponse()</code></li>
-              </ul>
-            </article>
-            <article class="reference-card">
-              <h4>Stream Utils (SSE)</h4>
-              <ul>
-                <li>
-                  <code>initSSE()</code> &middot; <code>sendSSEEvent()</code>
-                </li>
-                <li>
-                  <code>sendSSEComment()</code> &middot; <code>closeSSE()</code>
-                </li>
-                <li><code>SSEStream</code> class</li>
-                <li>
-                  <code>sendChunked()</code> &middot; <code
-                    >streamAsyncIterator()</code
-                  > &middot; <code>streamArray()</code>
-                </li>
-              </ul>
-            </article>
-            <article class="reference-card">
-              <h4>Auth Utils</h4>
-              <ul>
-                <li>
-                  <code>hashPassword()</code> (bcrypt) &middot; <code
-                    >hashPasswordArgon2()</code>
-                </li>
-                <li>
-                  <code>generateAccessToken()</code> &middot; <code
-                    >generateRefreshToken()</code>
-                </li>
-                <li><code>authenticateToken</code> middleware</li>
-                <li><code>requireRole(...roles)</code> middleware</li>
-              </ul>
-            </article>
-            <article class="reference-card">
-              <h4>API Utils</h4>
-              <ul>
-                <li><code>ControllerResult&lt;T&gt;</code> type</li>
-                <li><code>validateSchema()</code></li>
-                <li><code>sendResponse()</code></li>
-              </ul>
-            </article>
+          <div
+            class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 backdrop-blur-sm"
+          >
+            <h4 class="text-lg font-bold text-pink-400 mb-3">File Schema</h4>
+            <pre
+              class="text-sm text-gray-300"><code>k.file()
+  .image()
+  .maxSize(5 * 1024 * 1024)
+  .extensions(['.jpg'])</code></pre>
           </div>
+        </div>
+      </div>
+    </section>
 
-          <h3>Result Pattern &amp; Errors</h3>
-          <pre><code>{`// Result<T, E> pattern
-import { ok, err, isOk, isErr, map, mapErr, flatMap,
-  unwrap, unwrapOr, tryCatch, tryCatchAsync, combine, match } from './core/result.js';
-
-// AppError hierarchy
-import { AppError, ValidationError, AuthenticationError,
-  AuthorizationError, NotFoundError, ConflictError,
-  DatabaseError, ExternalServiceError, isAppError } from './core/errors.js';`}</code></pre>
-        </section>
-
-        <!-- ── Skill ── -->
-        <section id="skill" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> AI Skill &mdash; katax-ecosystem
-          </h2>
-          <p>
-            The Copilot/AI skill for the Katax ecosystem. Knows versions,
-            exports, patterns, CLI commands and troubleshooting.
-          </p>
-
-          <div class="cta-row">
-            <a
-              class="cta-link primary"
-              href="https://github.com/LOPIN6FARRIER/katax-service-manager/blob/main/.github/skills/katax-ecosystem/SKILL.md"
-              target="_blank"
-              rel="noopener noreferrer">View on GitHub</a
+    <!-- Resources Section -->
+    <section class="py-20 px-4">
+      <div class="container mx-auto max-w-4xl">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent"
+        >
+          Resources
+        </h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <a
+            href="https://github.com/LOPIN6FARRIER/katax-core"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-8 hover:border-cyan-500/50 transition-all hover:scale-105 text-center group backdrop-blur-sm"
+          >
+            <div
+              class="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-500/30 transition-colors"
             >
-            <a
-              class="cta-link"
-              href="https://raw.githubusercontent.com/LOPIN6FARRIER/katax-service-manager/main/.github/skills/katax-ecosystem/SKILL.md"
-              target="_blank"
-              rel="noopener noreferrer">Download SKILL.md</a
+              <svg
+                class="w-8 h-8 text-cyan-400"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">GitHub</h3>
+            <p class="text-gray-400 text-sm">View source code and contribute</p>
+          </a>
+
+          <a
+            href="https://www.npmjs.com/package/katax-core"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-8 hover:border-cyan-500/50 transition-all hover:scale-105 text-center group backdrop-blur-sm"
+          >
+            <div
+              class="w-16 h-16 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-pink-500/30 transition-colors"
             >
+              <svg
+                class="w-8 h-8 text-pink-400"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M0 7.334v8h6.666v1.332H12v-1.332h12v-8H0zm6.666 6.664H5.334v-4H3.999v4H1.335V8.667h5.331v5.331zm4 0v1.336H8.001V8.667h5.334v5.332h-2.669v-.001zm12.001 0h-1.33v-4h-1.336v4h-1.335v-4h-1.33v4h-2.671V8.667h8.002v5.331zM10.665 10H12v2.667h-1.335V10z"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">NPM Package</h3>
+            <p class="text-gray-400 text-sm">Download and install</p>
+          </a>
+
+          <a
+            href="https://github.com/LOPIN6FARRIER/katax-core#readme"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-8 hover:border-cyan-500/50 transition-all hover:scale-105 text-center group backdrop-blur-sm"
+          >
+            <div
+              class="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-500/30 transition-colors"
+            >
+              <svg
+                class="w-8 h-8 text-cyan-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Documentation</h3>
+            <p class="text-gray-400 text-sm">Full API reference</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-700/50 py-12 px-4 bg-slate-900/50">
+      <div class="container mx-auto max-w-6xl">
+        <div class="grid md:grid-cols-4 gap-8 mb-8">
+          <div>
+            <div class="flex items-center space-x-3 mb-4">
+              <img src="/images/logo.svg" alt="Katax" class="w-8 h-8" />
+              <span class="text-xl font-bold">Katax</span>
+            </div>
+            <p class="text-gray-400 text-sm">
+              Complete Node.js development toolkit
+            </p>
           </div>
-
-          ### AI Agent Skill Install the [katax-ecosystem AI agent
-          skill](https://skills.sh/LOPIN6FARRIER/katax-service-manager) for
-          enhanced IDE assistance across all Katax packages:
-          [![skills.sh](https://skills.sh/b/LOPIN6FARRIER/katax-service-manager)](https://skills.sh/LOPIN6FARRIER/katax-service-manager)
-          ```bash npx skills add LOPIN6FARRIER/katax-service-manager ```
-          Compatible with Claude Code, Cursor, Windsurf, GitHub Copilot, and
-          other AI coding agents.
-
-          <div class="reference-grid">
-            <article class="reference-card">
-              <h4>What it covers</h4>
-              <ul>
-                <li>Versions: core 1.5.4, service-manager 0.5.3, cli 1.4.4</li>
-                <li>All schema types and their methods</li>
-                <li>All services and their API</li>
-                <li>All CLI commands with options</li>
-                <li>Complete bootstrap template</li>
-                <li>Troubleshooting and gotchas</li>
-              </ul>
-            </article>
-            <article class="reference-card">
-              <h4>When to invoke it</h4>
-              <ul>
-                <li>Create/extend APIs with Katax</li>
-                <li>Design validations with katax-core</li>
-                <li>Bootstrap with katax-service-manager</li>
-                <li>Generate endpoints/CRUD/repos with CLI</li>
-                <li>Configure DB, cache, cron, WebSocket</li>
-                <li>Deploy on VPS with PM2</li>
-              </ul>
-            </article>
+          <div>
+            <h4 class="font-bold mb-4">Packages</h4>
+            <ul class="space-y-2 text-sm">
+              <li>
+                <a
+                  href="https://www.npmjs.com/package/katax-core"
+                  target="_blank"
+                  class="text-gray-400 hover:text-cyan-400 transition-colors"
+                  >katax-core</a>
+              </li>
+              <li>
+                <a
+                  href="https://www.npmjs.com/package/katax-service-manager"
+                  target="_blank"
+                  class="text-gray-400 hover:text-pink-400 transition-colors"
+                  >katax-service-manager</a>
+              </li>
+              <li>
+                <a
+                  href="https://www.npmjs.com/package/katax-cli"
+                  target="_blank"
+                  class="text-gray-400 hover:text-purple-400 transition-colors"
+                  >katax-cli</a>
+              </li>
+            </ul>
           </div>
-        </section>
-
-        <!-- ── Release ── -->
-        <section id="release" class="doc-section">
-          <div class="section-accent"></div>
-          <h2>
-            <span class="section-icon">&#9679;</span> Current Published Status
-          </h2>
-          <ul>
-            <li>
-              <strong>katax-core 1.5.4:</strong> 20+ schema types, coercion, async
-              validation, file/base64, advanced email, union/intersection/lazy, preprocess,
-              error utilities.
-            </li>
-            <li>
-              <strong>katax-service-manager 0.5.3:</strong> Singleton/instance, typed
-              DB (PostgreSQL/MySQL/MongoDB/Redis), cache, cron, WebSocket with auth,
-              transports (Redis/Telegram/Callback), registry, health, lifecycle hooks,
-              stream bridge, heartbeat.
-            </li>
-            <li>
-              <strong>katax-cli 1.4.4:</strong> Init with advanced prompts, CRUD/endpoint/repository
-              generators, OpenAPI docs, PM2 deploy (init/update/rollback/logs/status),
-              fixes, nested resources, typed access.
-            </li>
-          </ul>
-        </section>
-      </main>
-    </div>
-
-    <footer class="footer">
-      <p><strong>Katax Docs Hub</strong> &mdash; Vinicio Esparza</p>
-      <div class="footer-links">
-        <a
-          href="https://www.npmjs.com/package/katax-core"
-          target="_blank"
-          rel="noopener noreferrer">npm core</a
+          <div>
+            <h4 class="font-bold mb-4">Repositories</h4>
+            <ul class="space-y-2 text-sm">
+              <li>
+                <a
+                  href="https://github.com/LOPIN6FARRIER/katax-core"
+                  target="_blank"
+                  class="text-gray-400 hover:text-cyan-400 transition-colors"
+                  >Core on GitHub</a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/LOPIN6FARRIER/katax-service-manager"
+                  target="_blank"
+                  class="text-gray-400 hover:text-pink-400 transition-colors"
+                  >Service Manager on GitHub</a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/LOPIN6FARRIER/katax-cli"
+                  target="_blank"
+                  class="text-gray-400 hover:text-purple-400 transition-colors"
+                  >CLI on GitHub</a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-bold mb-4">Resources</h4>
+            <ul class="space-y-2 text-sm">
+              <li>
+                <a
+                  href="#skill"
+                  class="text-gray-400 hover:text-purple-400 transition-colors"
+                  >AI Skill</a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/LOPIN6FARRIER/katax-service-manager/tree/main/.github/skills"
+                  target="_blank"
+                  class="text-gray-400 hover:text-cyan-400 transition-colors"
+                  >Documentation</a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/LOPIN6FARRIER/katax-core/issues"
+                  target="_blank"
+                  class="text-gray-400 hover:text-cyan-400 transition-colors"
+                  >Report Issues</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div
+          class="border-t border-slate-700/30 pt-8 text-center text-sm text-gray-400"
         >
-        <a
-          href="https://www.npmjs.com/package/katax-service-manager"
-          target="_blank"
-          rel="noopener noreferrer">npm service</a
-        >
-        <a
-          href="https://www.npmjs.com/package/katax-cli"
-          target="_blank"
-          rel="noopener noreferrer">npm cli</a
-        >
-        <a
-          href="https://github.com/LOPIN6FARRIER/katax-core"
-          target="_blank"
-          rel="noopener noreferrer">GitHub Core</a
-        >
-        <a
-          href="https://github.com/LOPIN6FARRIER/katax-service-manager"
-          target="_blank"
-          rel="noopener noreferrer">GitHub Service</a
-        >
-        <a
-          href="https://github.com/LOPIN6FARRIER/katax-cli"
-          target="_blank"
-          rel="noopener noreferrer">GitHub CLI</a
-        >
+          <p>
+            Made with ❤️ by <span class="text-cyan-400 font-semibold"
+              >Vinicio Esparza</span>
+          </p>
+          <p class="mt-2">Licensed under MIT License</p>
+        </div>
       </div>
     </footer>
     <Analytics />
