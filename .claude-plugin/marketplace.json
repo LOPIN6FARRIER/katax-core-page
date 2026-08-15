@@ -1,0 +1,13 @@
+{
+  "name": "katax-marketplace",
+  "owner": {
+    "name": "Vinicio Esparza"
+  },
+  "plugins": [
+    {
+      "name": "katax-skills",
+      "source": "./katax-skills-plugin",
+      "description": "Skills and agents for the Katax ecosystem: katax-core (validation), katax-cli (scaffolding), katax-service-manager (bootstrap/runtime), katax-ecosystem (cross-package guidance), katax-mcp-server (MCP server + OAuth 2.1 for Claude connectors), plus the katax-project-builder subagent."
+    }
+  ]
+}

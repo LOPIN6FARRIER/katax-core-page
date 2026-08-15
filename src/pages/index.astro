@@ -84,9 +84,9 @@ import Analytics from "@vercel/analytics/astro";
           <h2>Katax Ecosystem</h2>
           <p>Three TypeScript packages to build, validate, and deploy Node.js APIs on VPS infrastructure with PM2.</p>
           <div class="hero-tags">
-            <span class="hero-tag"><span class="chip-dot"></span> katax-core 1.5.4</span>
-            <span class="hero-tag"><span class="chip-dot"></span> katax-service-manager 0.5.3</span>
-            <span class="hero-tag"><span class="chip-dot"></span> katax-cli 1.4.4</span>
+            <span class="hero-tag"><span class="chip-dot"></span> katax-core 1.6.5</span>
+            <span class="hero-tag"><span class="chip-dot"></span> katax-service-manager 0.5.9</span>
+            <span class="hero-tag"><span class="chip-dot"></span> katax-cli 1.5.2</span>
           </div>
         </section>
 
@@ -173,6 +173,12 @@ schema.catch(value)           // Return fallback on validation failure`}</code><
                 <tr><td><code>uuid(msg?)</code></td><td>Valid UUID (RFC 4122)</td></tr>
                 <tr><td><code>ip(msg?)</code></td><td>Valid IPv4</td></tr>
                 <tr><td><code>regex(pattern, msg?)</code></td><td>Regex match</td></tr>
+                <tr><td><code>datetime(msg?)</code></td><td>Valid ISO 8601 datetime</td></tr>
+                <tr><td><code>jwt(msg?)</code></td><td>Valid JWT format</td></tr>
+                <tr><td><code>cuid2(msg?)</code></td><td>Valid CUID2</td></tr>
+                <tr><td><code>ulid(msg?)</code></td><td>Valid ULID</td></tr>
+                <tr><td><code>emoji(msg?)</code></td><td>Valid emoji sequence</td></tr>
+                <tr><td><code>cidr(msg?)</code></td><td>Valid CIDR notation</td></tr>
                 <tr><td><code>startsWith(prefix, msg?)</code></td><td>Must start with string</td></tr>
                 <tr><td><code>endsWith(suffix, msg?)</code></td><td>Must end with string</td></tr>
                 <tr><td><code>includes(substr, msg?)</code></td><td>Must include substring</td></tr>
@@ -201,9 +207,11 @@ schema.catch(value)           // Return fallback on validation failure`}</code><
               <tbody>
                 <tr><td><code>min(value, msg?)</code></td><td>Minimum value (&gt;=)</td></tr>
                 <tr><td><code>max(value, msg?)</code></td><td>Maximum value (&lt;=)</td></tr>
-                <tr><td><code>length(exact, msg?)</code></td><td>Exact value</td></tr>
+                <tr><td><code>equals(exact, msg?)</code></td><td>Exact value</td></tr>
                 <tr><td><code>positive(msg?)</code></td><td>Must be &gt; 0</td></tr>
                 <tr><td><code>negative(msg?)</code></td><td>Must be &lt; 0</td></tr>
+                <tr><td><code>nonnegative(msg?)</code></td><td>Must be &gt;= 0</td></tr>
+                <tr><td><code>nonpositive(msg?)</code></td><td>Must be &lt;= 0</td></tr>
                 <tr><td><code>integer(msg?)</code></td><td>Must be integer</td></tr>
                 <tr><td><code>finite(msg?)</code></td><td>Must be finite</td></tr>
                 <tr><td><code>multipleOf(factor, msg?)</code></td><td>Multiple of</td></tr>
@@ -213,7 +221,6 @@ schema.catch(value)           // Return fallback on validation failure`}</code><
                 <tr><td><code>notEqual(n, msg?)</code></td><td>Not equal to value</td></tr>
                 <tr><td><code>oneOf(arr, msg?)</code></td><td>Must be one option</td></tr>
                 <tr><td><code>notOneOf(arr, msg?)</code></td><td>Must not be any option</td></tr>
-                <tr><td><code>nonempty(msg?)</code></td><td>Alias for min(1)</td></tr>
               </tbody>
             </table>
           </div>
@@ -469,12 +476,13 @@ k.coerce.date().isFuture()`}</code></pre>
 )`}</code></pre>
 
           <h3>Error Utilities</h3>
-          <pre><code>{`import { createIssue, issues, mergeIssues, isIssueArray, KataxError } from 'katax-core';
+          <pre><code>{`import { createIssue, issues, mergeIssues, isIssueArray, describeReceived, KataxError } from 'katax-core';
 
 createIssue(['field'], 'error message');   // Issue object
 issues(['field'], 'error message');         // Issue[]
 mergeIssues(arr1, arr2);                    // Merge issue arrays
 isIssueArray(value);                        // Type guard
+describeReceived(value);                    // 'null' | 'undefined' | 'array' | typeof value
 
 // KataxError is thrown by parse()/parseAsync()
 throw new KataxError(result.issues);`}</code></pre>
@@ -572,6 +580,12 @@ katax.envRequired('JWT_SECRET');  // throws if missing
 katax.isDev    katax.isProd    katax.isTest
 katax.nodeEnv  katax.appName   katax.version
 katax.isInitialized`}</code></pre>
+
+          <h3>Configuration Service</h3>
+          <pre><code>{`const port = katax.config.get('PORT', 3000);
+const exists = katax.config.has('API_KEY');
+katax.config.set('custom', value);
+katax.config.getAll();  // available on ConfigService, not on the public IConfigService type`}</code></pre>
 
           <h3>Overrides (testing)</h3>
           <pre><code>{`import { Katax } from 'katax-service-manager';
@@ -947,7 +961,7 @@ void bootstrap();`}</code></pre>
             <table>
               <thead><tr><th style="width:25%">Flag</th><th>Description</th></tr></thead>
               <tbody>
-                <tr><td><code>-m, --method &lt;method&gt;</code></td><td>HTTP method (GET, POST, PUT, PATCH, DELETE)</td></tr>
+                <tr><td><code>-m, --method &lt;method&gt;</code></td><td>HTTP method (GET, POST, PUT, DELETE) &mdash; default: <code>POST</code></td></tr>
                 <tr><td><code>-p, --path &lt;path&gt;</code></td><td>Custom route path</td></tr>
               </tbody>
             </table>
@@ -1002,6 +1016,7 @@ katax deploy status     # Show PM2 apps`}</code></pre>
           <pre><code>{`katax fix docs        # Patch build script to copy openapi.json
   --skip-install
 katax fix all         # Apply all fixes
+  --skip-install
 katax fix list        # List available patches`}</code></pre>
 
           <h3>Global Options</h3>
@@ -1053,12 +1068,13 @@ katax deploy update -b production --hard`}</code></pre>
           <h3>Shared Utilities</h3>
           <div class="reference-grid">
             <article class="reference-card">
-              <h4>Response Utils</h4>
+              <h4>API Utils</h4>
               <ul>
-                <li><code>sendSuccess&lt;T&gt;()</code></li>
-                <li><code>sendError()</code> &middot; <code>sendValidationError()</code></li>
-                <li><code>sendResult&lt;T,E&gt;()</code></li>
+                <li><code>ControllerResult&lt;T&gt;</code> type</li>
+                <li><code>createSuccessResult()</code> &middot; <code>createErrorResult()</code></li>
+                <li><code>validateSchema()</code></li>
                 <li><code>sendResponse()</code></li>
+                <li><code>setCookie()</code> &middot; <code>clearCookie()</code></li>
               </ul>
             </article>
             <article class="reference-card">
@@ -1073,25 +1089,18 @@ katax deploy update -b production --hard`}</code></pre>
             <article class="reference-card">
               <h4>Auth Utils</h4>
               <ul>
-                <li><code>hashPassword()</code> (bcrypt) &middot; <code>hashPasswordArgon2()</code></li>
-                <li><code>generateAccessToken()</code> &middot; <code>generateRefreshToken()</code></li>
-                <li><code>authenticateToken</code> middleware</li>
-                <li><code>requireRole(...roles)</code> middleware</li>
-              </ul>
-            </article>
-            <article class="reference-card">
-              <h4>API Utils</h4>
-              <ul>
-                <li><code>ControllerResult&lt;T&gt;</code> type</li>
-                <li><code>validateSchema()</code></li>
-                <li><code>sendResponse()</code></li>
+                <li><code>hashPassword()</code> &middot; <code>verifyPassword()</code> (bcrypt)</li>
+                <li><code>hashPasswordArgon2()</code> &middot; <code>verifyPasswordArgon2()</code></li>
+                <li><code>generateToken()</code> &middot; <code>verifyToken()</code> &middot; <code>decodeToken()</code> &middot; <code>generateRefreshToken()</code> (JWT)</li>
+                <li><code>generateRandomToken()</code> &middot; <code>generateNumericCode()</code></li>
+                <li><code>sha256()</code> &middot; <code>md5()</code> &middot; <code>encrypt()</code> &middot; <code>decrypt()</code> &middot; <code>secureCompare()</code></li>
               </ul>
             </article>
           </div>
 
           <h3>Result Pattern &amp; Errors</h3>
           <pre><code>{`// Result<T, E> pattern
-import { ok, err, isOk, isErr, map, mapErr, flatMap,
+import { ok, err, isOk, isErr, map, mapErr, flatMap, ifOk, ifErr,
   unwrap, unwrapOr, tryCatch, tryCatchAsync, combine, match } from './core/result.js';
 
 // AppError hierarchy
@@ -1115,7 +1124,7 @@ import { AppError, ValidationError, AuthenticationError,
             <article class="reference-card">
               <h4>What it covers</h4>
               <ul>
-                <li>Versions: core 1.5.4, service-manager 0.5.3, cli 1.4.4</li>
+                <li>Versions: core 1.6.5, service-manager 0.5.9, cli 1.5.2</li>
                 <li>All schema types and their methods</li>
                 <li>All services and their API</li>
                 <li>All CLI commands with options</li>
@@ -1142,9 +1151,9 @@ import { AppError, ValidationError, AuthenticationError,
           <div class="section-accent"></div>
           <h2><span class="section-icon">&#9679;</span> Current Published Status</h2>
           <ul>
-            <li><strong>katax-core 1.5.4:</strong> 20+ schema types, coercion, async validation, file/base64, advanced email, union/intersection/lazy, preprocess, error utilities.</li>
-            <li><strong>katax-service-manager 0.5.3:</strong> Singleton/instance, typed DB (PostgreSQL/MySQL/MongoDB/Redis), cache, cron, WebSocket with auth, transports (Redis/Telegram/Callback), registry, health, lifecycle hooks, stream bridge, heartbeat.</li>
-            <li><strong>katax-cli 1.4.4:</strong> Init with advanced prompts, CRUD/endpoint/repository generators, OpenAPI docs, PM2 deploy (init/update/rollback/logs/status), fixes, nested resources, typed access.</li>
+            <li><strong>katax-core 1.6.5:</strong> 20+ schema types, coercion, async validation, file/base64, advanced email, union/intersection/lazy, preprocess, error utilities.</li>
+            <li><strong>katax-service-manager 0.5.9:</strong> Singleton/instance, typed DB (PostgreSQL/MySQL/MongoDB/Redis), cache, cron, WebSocket with auth, transports (Redis/Telegram/Callback), registry, health, lifecycle hooks, stream bridge, heartbeat.</li>
+            <li><strong>katax-cli 1.5.2:</strong> Init with advanced prompts, CRUD/endpoint/repository generators, OpenAPI docs, PM2 deploy (init/update/rollback/logs/status), fixes, nested resources, typed access.</li>
           </ul>
         </section>
       </main>

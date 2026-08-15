@@ -1,92 +1,35 @@
 # Katax Core Documentation Website
 
-Landing page and documentation site for the Katax Core validation library built with Astro and Tailwind CSS.
+Documentation site for the Katax ecosystem (`katax-core`, `katax-service-manager`, `katax-cli`), built with Astro and Tailwind CSS. Live at https://www.katax.dev/.
 
-## Features
+## What's on the site
 
-- Modern, responsive design with gradient backgrounds
-- Interactive code examples
-- Complete feature showcase
-- Links to GitHub and NPM
-- Single Page Application (SPA) layout
-- Optimized for performance
+- Overview and key features (type-safe validation, async validation, comprehensive schemas, transform support, minimal dependencies).
+- Installation instructions for all three packages.
+- Full API reference for `katax-core` (all schema types), `katax-service-manager` (services, bootstrap), and `katax-cli` (commands, generators).
+- Quick examples: basic validation, async validators, type inference, nested schemas.
+- Links to GitHub and npm.
 
 ## Tech Stack
 
-- **Astro** - Static site generator
-- **Tailwind CSS** - Utility-first CSS framework
-- **TypeScript** - Type safety
+- **Astro** — static site generator
+- **Tailwind CSS** — utility-first CSS framework
+- **TypeScript**
 
 ## Development
 
-### Install dependencies
 ```bash
 npm install
+npm run dev
 ```
 
-# Katax Core Page
+Open `http://localhost:4321` (Astro default) to view the site locally.
 
-Lightweight starter template and documentation site for the Katax Core project, built with Astro.
+## Contributing
 
-Purpose
+Edit documentation content in `src/pages/index.astro`, global styles in `src/styles/`. Submit a pull request with a short description of the change.
 
-This repository hosts the documentation site for Katax Core. The site provides:
+## Links
 
-- User-facing documentation and guides for using the Katax Core validation library.
-- Example usage snippets and small, self-contained demos.
-- API reference pages (placeholders to be filled with generated docs or manual docs).
-
-What’s included
-
-- Documentation pages under `src/pages` (index, guides, examples)
-- Global styles under `src/styles` and static assets under `public`
-
-Preview locally
-
-1. Install dependencies and run the dev server:
-
-   npm install
-   npm run dev
-
-2. Open the local site (usually `http://localhost:3000`) to view the docs.
-
-How to contribute
-
-- Add or edit documentation pages in `src/pages`.
-- Open an issue or submit a pull request with your changes and a short description.
-
-Contact
-
-Repository: https://github.com/LOPIN6FARRIER/katax-core-page
-
-This README focuses only on the documentation site purpose and contents. For additional project details, see files in the repository.
-
-About this documentation site
----------------------------
-This repository hosts the documentation website for Katax Core available at https://www.katax.dev/. The site provides end-user documentation, quick-start guides, examples and an API reference for the Katax Core validation library.
-
-What you'll find on the site
----------------------------
-- Overview and key features (Type-safe validation, Async validation, Comprehensive schemas, Transform support, Multiple error reporting, Minimal dependencies).
-- Installation instructions (`npm install katax-core`).
-- Quick examples showing basic validation, async validators, type inference, and complex nested schemas.
-- Reference pages for available schema types (string, number, date, email, array, file, etc.).
-- Links to the GitHub repository, NPM package, and issue tracker.
-
-Purpose of this repo
---------------------
-- Keep the documentation source and site configuration (pages, examples, assets).
-- Provide a place to edit and review documentation content before publishing to the live site.
-
-Contributing
-------------
-Edit documentation pages under `src/pages` and submit a pull request. Include a short description of your change and any example code needed to verify it.
-
-Live site
----------
-https://www.katax.dev/
-
-Repository
-----------
-https://github.com/LOPIN6FARRIER/katax-core-page
-
+- Live site: https://www.katax.dev/
+- Repository: https://github.com/LOPIN6FARRIER/katax-core-page
