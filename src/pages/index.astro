@@ -75,6 +75,7 @@ import Analytics from "@vercel/analytics/astro";
         <a href="#cli-generators">Generators / Templates</a>
         <hr class="sidebar-divider" />
         <a href="#skill">AI Skill</a>
+        <a href="#plugin">Claude Code Plugin</a>
         <a href="#release">Current Status</a>
       </aside>
 
@@ -1143,6 +1144,42 @@ import { AppError, ValidationError, AuthenticationError,
                 <li>Deploy on VPS with PM2</li>
               </ul>
             </article>
+          </div>
+        </section>
+
+        <!-- ── Claude Code Plugin ── -->
+        <section id="plugin" class="doc-section">
+          <div class="section-accent"></div>
+          <h2><span class="section-icon">&#9679;</span> Claude Code Plugin</h2>
+          <p>Everything below packaged as a <strong>Claude Code plugin</strong>: 5 skills covering the full ecosystem, plus a subagent that scaffolds new katax projects end to end (bootstrap, production hardening, optional MCP server). Install once, available in any repo.</p>
+
+          <h3>Install</h3>
+          <pre><code>{`/plugin marketplace add LOPIN6FARRIER/katax-core-page
+/plugin install katax-skills@katax-marketplace`}</code></pre>
+          <p>If the install summary says <code>Run /reload-plugins to activate.</code>, run that command.</p>
+
+          <div class="reference-grid">
+            <article class="reference-card">
+              <h4>Skills included</h4>
+              <ul>
+                <li><code>katax-core</code> &mdash; validation schema API</li>
+                <li><code>katax-cli</code> &mdash; scaffolding &amp; generators</li>
+                <li><code>katax-service-manager</code> &mdash; bootstrap &amp; runtime</li>
+                <li><code>katax-ecosystem</code> &mdash; cross-package guidance + production hardening (rate limiting, CORS, Helmet, cookies, sessions)</li>
+                <li><code>katax-mcp-server</code> &mdash; MCP server + OAuth 2.1 for Claude connectors</li>
+              </ul>
+            </article>
+            <article class="reference-card">
+              <h4>Agent included</h4>
+              <ul>
+                <li><code>katax-project-builder</code> &mdash; scaffolds a new production-ready katax API project: runs <code>katax init</code>, wires bootstrap, applies rate limiting/CORS/Helmet/cookies/sessions, and optionally adds a full MCP server with OAuth 2.1</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="cta-row">
+            <a class="cta-link primary" href="https://github.com/LOPIN6FARRIER/katax-core-page/tree/main/katax-skills-plugin" target="_blank" rel="noopener noreferrer">View plugin on GitHub</a>
+            <a class="cta-link" href="https://github.com/LOPIN6FARRIER/katax-core-page/blob/main/.claude-plugin/marketplace.json" target="_blank" rel="noopener noreferrer">View marketplace.json</a>
           </div>
         </section>
 
