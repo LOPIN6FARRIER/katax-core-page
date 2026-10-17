@@ -51,11 +51,13 @@ import Analytics from "@vercel/analytics/astro";
         <a href="#core-date">Date / TwoDates</a>
         <a href="#core-file">File</a>
         <a href="#core-base64">Base64</a>
-        <a href="#core-composition">Union / Intersection / Lazy</a>
+        <a href="#core-composition">Union / Discriminated / Lazy</a>
+        <a href="#core-collections">BigInt / Set / Map / Primitives</a>
         <a href="#core-extras">Literal / Enum / Tuple / Record</a>
         <a href="#core-custom">Custom</a>
         <a href="#core-modifiers">Modifiers / Coerce / Preprocess</a>
         <a href="#core-async">Async Validation</a>
+        <a href="#core-jsonschema">JSON Schema / OpenAPI</a>
         <hr class="sidebar-divider" />
         <span class="sidebar-group-label">katax-service-manager</span>
         <a href="#sm">Overview</a>
@@ -86,8 +88,8 @@ import Analytics from "@vercel/analytics/astro";
           <p>Three TypeScript packages to build, validate, and deploy Node.js APIs on VPS infrastructure with PM2.</p>
           <div class="hero-tags">
             <span class="hero-tag"><span class="chip-dot"></span> katax-core 1.6.5</span>
-            <span class="hero-tag"><span class="chip-dot"></span> katax-service-manager 0.5.9</span>
-            <span class="hero-tag"><span class="chip-dot"></span> katax-cli 1.5.2</span>
+            <span class="hero-tag"><span class="chip-dot"></span> katax-service-manager 0.6.1</span>
+            <span class="hero-tag"><span class="chip-dot"></span> katax-cli 1.6.2</span>
           </div>
         </section>
 
@@ -98,7 +100,8 @@ import Analytics from "@vercel/analytics/astro";
 npm install katax-service-manager
 npm install -g katax-cli
 
-# optional peer deps for katax-service-manager
+# optional peer deps for katax-service-manager (install only what you use;
+# each one is loaded lazily the first time you use that feature)
 npm install pg mysql2 mongodb redis socket.io dotenv node-cron pino-pretty`}</code></pre>
         </section>
 
@@ -121,7 +124,9 @@ const UserSchema = k.object({
 type User = kataxInfer<typeof UserSchema>;
 
 const result = UserSchema.safeParse(req.body);
-if (!result.success) return res.status(400).json({ errors: result.issues });`}</code></pre>
+if (!result.success) return res.status(400).json({ errors: result.issues });
+
+// Inferred: { email: string; name: string; age: number | undefined }`}</code></pre>
 
           <h3>Core Types</h3>
           <pre><code>{`type SafeParseResult<T> = 
@@ -139,23 +144,43 @@ interface ValidationResult {
 }`}</code></pre>
 
           <h3>Schema API</h3>
-          <p>All schemas implement: <code>parse(input): T</code> &middot; <code>safeParse(input): SafeParseResult&lt;T&gt;</code> &middot; <code>validate(input): ValidationResult</code> &middot; <code>parseAsync(input): Promise&lt;T&gt;</code> &middot; <code>safeParseAsync(input): Promise&lt;AsyncSafeParseResult&lt;T&gt;&gt;</code> &middot; <code>isValidAsync(input): Promise&lt;AsyncValidationResult&gt;</code> &middot; <code>hasAsyncValidation(): boolean</code> &middot; <code>kataxInfer: T</code></p>
+          <p>All schemas implement: <code>parse(input): T</code> &middot; <code>safeParse(input): SafeParseResult&lt;T&gt;</code> &middot; <code>validate(input): ValidationResult</code> &middot; <code>parseAsync(input): Promise&lt;T&gt;</code> &middot; <code>safeParseAsync(input): Promise&lt;AsyncSafeParseResult&lt;T&gt;&gt;</code> &middot; <code>isValidAsync(input): Promise&lt;AsyncValidationResult&gt;</code> &middot; <code>hasAsyncValidation(): boolean</code> &middot; <code>describe(text)</code> &middot; <code>toJsonSchema()</code> &middot; <code>kataxInfer: T</code></p>
 
           <h3>All k factories</h3>
-          <pre><code>{`k.string()    k.number()    k.boolean()    k.date()     k.twoDates()
-k.object()    k.array()     k.tuple()      k.record()
-k.union()     k.intersection()            k.lazy()
-k.email()     k.file()      k.base64()
+          <pre><code>{`k.string()    k.number()    k.boolean()    k.bigint()   k.date()    k.twoDates()
+k.object()    k.array()     k.tuple()      k.record()   k.set()     k.map()
+k.union()     k.intersection()             k.discriminatedUnion()   k.lazy()
+k.email()     k.file()      k.base64()     k.promise()
 k.custom()    k.literal()   k.enum()
 k.any()       k.unknown()   k.never()
+k.nan()       k.null()      k.undefined()  k.void()
 k.coerce      k.preprocess()`}</code></pre>
 
           <h3>Modifiers (chainable, all schemas)</h3>
           <pre><code>{`schema.optional()             // T | undefined
 schema.nullable()             // T | null
+schema.nullish()              // T | null | undefined
 schema.default(value)         // Returns default if undefined
 schema.transform(fn)          // Transform output type
-schema.catch(value)           // Return fallback on validation failure`}</code></pre>
+schema.catch(value)           // Return fallback on validation failure
+schema.refine(fn, msg?)       // Extra sync check
+schema.asyncRefine(fn)        // Extra async check (DB, APIs...)
+schema.brand('UserId')        // Nominal type
+schema.describe('text')       // Description for JSON Schema / OpenAPI`}</code></pre>
+
+          <h3>optional vs nullable vs nullish</h3>
+          <p><code>undefined</code> (missing key) and <code>null</code> (explicitly empty) are different values. <code>.optional()</code> does <strong>not</strong> accept <code>null</code>; use <code>.nullish()</code> for both.</p>
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th style="width:30%">Modifier</th><th>undefined / missing key</th><th>null</th></tr></thead>
+              <tbody>
+                <tr><td><code>.optional()</code></td><td>Yes</td><td>No</td></tr>
+                <tr><td><code>.nullable()</code></td><td>No</td><td>Yes</td></tr>
+                <tr><td><code>.nullish()</code></td><td>Yes</td><td>Yes</td></tr>
+                <tr><td><code>.default(v)</code></td><td>Yes (replaced by <code>v</code>)</td><td>No</td></tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <!-- ── String Schema ── -->
@@ -191,7 +216,7 @@ schema.catch(value)           // Return fallback on validation failure`}</code><
                 <tr><td><code>alphanumeric(msg?)</code></td><td>Letters and numbers</td></tr>
                 <tr><td><code>ascii(msg?)</code></td><td>ASCII characters only</td></tr>
                 <tr><td><code>noWhitespace(msg?)</code></td><td>No spaces</td></tr>
-                <tr><td><code>nonempty(msg?)</code></td><td>Cannot be empty</td></tr>
+                <tr><td><code>nonempty(msg?)</code> / <code>notEmpty(msg?)</code></td><td>Cannot be empty</td></tr>
                 <tr><td><code>trim()</code></td><td>No leading/trailing spaces (no msg param)</td></tr>
               </tbody>
             </table>
@@ -279,10 +304,10 @@ schema.catch(value)           // Return fallback on validation failure`}</code><
             <table>
               <thead><tr><th style="width:30%">Method</th><th>Description</th></tr></thead>
               <tbody>
-                <tr><td><code>minLength(n, msg?)</code></td><td>Minimum length</td></tr>
-                <tr><td><code>maxLength(n, msg?)</code></td><td>Maximum length</td></tr>
+                <tr><td><code>minLength(n, msg?)</code> / <code>min(n, msg?)</code></td><td>Minimum length</td></tr>
+                <tr><td><code>maxLength(n, msg?)</code> / <code>max(n, msg?)</code></td><td>Maximum length</td></tr>
                 <tr><td><code>length(n, msg?)</code></td><td>Exact length</td></tr>
-                <tr><td><code>notEmpty(msg?)</code></td><td>Cannot be empty</td></tr>
+                <tr><td><code>notEmpty(msg?)</code> / <code>nonempty(msg?)</code></td><td>Cannot be empty</td></tr>
                 <tr><td><code>unique(msg?)</code></td><td>Unique elements (deep equality)</td></tr>
                 <tr><td><code>contains(element, msg?)</code></td><td>Must contain element</td></tr>
               </tbody>
@@ -319,7 +344,7 @@ schema.catch(value)           // Return fallback on validation failure`}</code><
           <div class="section-accent"></div>
           <h2><span class="section-icon">&#9679;</span> Date &amp; TwoDates</h2>
           <h3><code>k.date()</code></h3>
-          <p>Input: ISO 8601. Output: <code>Date</code> object. Uses <code>date-fns</code>.</p>
+          <p>Input: a <code>Date</code> or an ISO 8601 string (<code>'2024-01-15'</code>, <code>'2024-01-15T10:30:00Z'</code>). Output: <code>Date</code> object. Uses <code>date-fns</code>.</p>
           <div class="table-wrapper">
             <table>
               <thead><tr><th style="width:30%">Method</th><th>Description</th></tr></thead>
@@ -404,9 +429,15 @@ schema.catch(value)           // Return fallback on validation failure`}</code><
         <!-- ── Composition ── -->
         <section id="core-composition" class="doc-section">
           <div class="section-accent"></div>
-          <h2><span class="section-icon">&#9679;</span> Union / Intersection / Lazy</h2>
-          <pre><code>{`// Union — at least one schema must match (short-circuit)
+          <h2><span class="section-icon">&#9679;</span> Union / Intersection / Discriminated Union / Lazy</h2>
+          <pre><code>{`// Union — first schema that matches wins
 k.union([k.string(), k.number()])
+
+// Discriminated union — O(1) dispatch by a key; map keys are the discriminator values
+k.discriminatedUnion('type', {
+  cat: k.object({ type: k.literal('cat'), meow: k.boolean() }),
+  dog: k.object({ type: k.literal('dog'), bark: k.boolean() }),
+})
 
 // Intersection — ALL schemas must match (merge objects)
 k.intersection([
@@ -414,13 +445,33 @@ k.intersection([
   k.object({ name: k.string() })
 ])
 
-// Lazy — deferred resolution for recursive types
+// Lazy — deferred resolution for recursive types.
+// The optional name becomes the JSON Schema $anchor of the recursion.
 const categorySchema = k.lazy(() =>
   k.object({
     name: k.string(),
     subcategories: k.array(categorySchema)
-  })
+  }),
+  'Category'
 );`}</code></pre>
+        </section>
+
+        <!-- ── BigInt / Set / Map / Promise / Primitives ── -->
+        <section id="core-collections" class="doc-section">
+          <div class="section-accent"></div>
+          <h2><span class="section-icon">&#9679;</span> BigInt / Set / Map / Promise / Primitives</h2>
+          <pre><code>{`k.bigint()                 // min, max, positive, negative, nonnegative, nonpositive,
+                           // between, greaterThan, lessThan, multipleOf, equals,
+                           // notEqual, oneOf, notOneOf
+
+k.set(k.number())          // Set<number>        .minSize(n) .maxSize(n) .nonempty()
+k.map(k.string(), k.number()) // Map<string, number> .minSize(n) .maxSize(n) .nonempty()
+k.promise(k.string())      // input must be a Promise; the resolved value is validated
+
+k.nan()        // only NaN
+k.null()       // only null
+k.undefined()  // only undefined (inside an object: key must be absent)
+k.void()       // null or undefined`}</code></pre>
         </section>
 
         <!-- ── Extras ── -->
@@ -464,7 +515,7 @@ k.coerce.boolean()  // "true"/"1"/"yes" → true, "false"/"0"/"no" → false
 k.coerce.string()   // 42 → "42", true → "true", null → ""
 k.coerce.date()     // ISO string → Date, timestamp → Date
 
-// Proxy validation methods available:
+// Every method of the target schema is available:
 k.coerce.number().positive().integer()
 k.coerce.boolean().isTrue()
 k.coerce.string().minLength(3).email()
@@ -485,8 +536,10 @@ mergeIssues(arr1, arr2);                    // Merge issue arrays
 isIssueArray(value);                        // Type guard
 describeReceived(value);                    // 'null' | 'undefined' | 'array' | typeof value
 
-// KataxError is thrown by parse()/parseAsync()
-throw new KataxError(result.issues);`}</code></pre>
+// KataxError is thrown by parse()/parseAsync(); e.issues has every issue
+throw new KataxError(result.issues);
+
+// KataxAsyncValidationRequiredError: parse()/safeParse() on a schema with async validators`}</code></pre>
         </section>
 
         <!-- ── Async Validation ── -->
@@ -502,7 +555,56 @@ const result = await usernameSchema.safeParseAsync(input);
 
 // Also available:
 await schema.parseAsync(input);      // Throws KataxError
-await schema.isValidAsync(input);    // { valid, issues }`}</code></pre>
+await schema.isValidAsync(input);    // { valid, issues }
+
+// parse()/safeParse() throw KataxAsyncValidationRequiredError on schemas with async
+// validators. validateSchema() picks sync or async for you:
+import { validateSchema } from 'katax-core';
+const r = await validateSchema(usernameSchema, req.body.username);`}</code></pre>
+        </section>
+
+        <!-- ── JSON Schema / OpenAPI ── -->
+        <section id="core-jsonschema" class="doc-section">
+          <div class="section-accent"></div>
+          <h2><span class="section-icon">&#9679;</span> JSON Schema &amp; OpenAPI &mdash; <code>toJsonSchema()</code></h2>
+          <p>Every schema generates <strong>JSON Schema Draft 2020-12</strong> that matches what <code>parse()</code> accepts: chained rules, nullability and optional keys included. Use it in <strong>OpenAPI 3.1</strong> documents (Swagger UI, Redoc). OpenAPI 3.0 uses an older JSON Schema subset and won't accept <code>type</code> arrays, <code>const</code> or <code>prefixItems</code>.</p>
+          <pre><code>{`const schema = k.object({
+  name: k.string().minLength(2).describe("User's full name"),
+  age: k.number().integer().min(18),
+  nickname: k.string().nullish(),
+  role: k.enum(['admin', 'user']).default('user'),
+});
+
+schema.toJsonSchema();
+// {
+//   type: "object",
+//   properties: {
+//     name: { type: "string", minLength: 2, description: "User's full name" },
+//     age: { type: "integer", minimum: 18 },
+//     nickname: { type: ["string", "null"] },
+//     role: { type: "string", enum: ["admin", "user"], default: "user" }
+//   },
+//   required: ["name", "age"]
+// }`}</code></pre>
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th style="width:35%">Schema</th><th>JSON Schema</th></tr></thead>
+              <tbody>
+                <tr><td><code>.optional()</code> / <code>.default(v)</code></td><td>Key not in <code>required</code> (<code>default</code> also adds <code>default: v</code>)</td></tr>
+                <tr><td><code>.nullable()</code></td><td><code>type: ["T", "null"]</code>, or <code>anyOf</code> with <code>null</code> for enum/literal/union</td></tr>
+                <tr><td><code>.nullish()</code></td><td>Like <code>.nullable()</code> and key not required</td></tr>
+                <tr><td><code>k.number().integer()</code></td><td><code>type: "integer"</code></td></tr>
+                <tr><td><code>.positive()</code> / <code>.greaterThan(n)</code></td><td><code>exclusiveMinimum</code></td></tr>
+                <tr><td>String rules (<code>regex</code>, <code>startsWith</code>...)</td><td><code>pattern</code>; several are combined with <code>allOf</code></td></tr>
+                <tr><td><code>k.object().strict()</code></td><td><code>additionalProperties: false</code></td></tr>
+                <tr><td><code>k.union()</code> / <code>k.intersection()</code></td><td><code>anyOf</code> / <code>allOf</code></td></tr>
+                <tr><td><code>k.discriminatedUnion()</code></td><td><code>oneOf</code>; each branch pins the key with <code>const</code></td></tr>
+                <tr><td><code>k.tuple()</code></td><td><code>prefixItems</code> + <code>items: false</code></td></tr>
+                <tr><td>Recursive <code>k.lazy(fn, 'Name')</code></td><td><code>$anchor: "Name"</code> and <code>$ref: "#Name"</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Runtime-only rules (not representable in JSON Schema): <code>refine</code>, <code>asyncRefine</code>, <code>custom</code>, transforms, date comparisons, email domain rules, file/base64 size and MIME checks, regex flags.</p>
         </section>
 
         <!-- ═══ KATAX-SERVICE-MANAGER ═══ -->
@@ -518,15 +620,15 @@ await schema.isValidAsync(input);    // { valid, issues }`}</code></pre>
               <ul>
                 <li><code>Katax</code> class &mdash; <code>katax</code> singleton</li>
                 <li><code>new Katax()</code> isolated instances</li>
-                <li><code>Katax.getInstance()</code> / <code>Katax.reset()</code></li>
+                <li><code>Katax.getInstance()</code> / <code>await Katax.reset()</code></li>
               </ul>
               <h4>Services</h4>
               <ul>
                 <li><code>ConfigService</code> &middot; <code>LoggerService</code></li>
-                <li><code>DatabaseService</code> &middot; <code>WebSocketService</code></li>
-                <li><code>CronService</code> &middot; <code>CacheService</code></li>
+                <li><code>DatabaseService</code> &middot; <code>CacheService</code></li>
                 <li><code>RegistryService</code> &middot; <code>RedisStreamBridgeService</code></li>
               </ul>
+              <p>WebSocket and cron are used through <code>katax.socket()</code> / <code>katax.cron()</code>; their classes aren't exported so <code>socket.io</code> and <code>node-cron</code> stay optional.</p>
             </article>
             <article class="reference-card">
               <h4>Errors</h4>
@@ -590,7 +692,7 @@ katax.config.getAll();  // available on ConfigService, not on the public IConfig
 
           <h3>Overrides (testing)</h3>
           <pre><code>{`import { Katax } from 'katax-service-manager';
-beforeEach(() => Katax.reset());
+beforeEach(async () => { await Katax.reset(); });
 
 katax.overrideService('db:main', mockDb);
 katax.overrideService('logger', mockLogger);
@@ -634,18 +736,21 @@ const redis = await katax.database({
 });`}</code></pre>
 
           <h3>Typed Access</h3>
-          <pre><code>{`const db = katax.db('main');
+          <p><code>katax.database()</code> is typed by <code>type</code>: <code>ISqlDatabase</code> (postgresql/mysql), <code>IMongoDatabase</code> or <code>IRedisDatabase</code> (<code>| null</code> with <code>required: false</code>). <code>katax.db(name)</code> returns the generic <code>IDatabaseService</code>, so narrow it:</p>
+          <pre><code>{`import { katax, DatabaseService, type ISqlDatabase, type IRedisDatabase } from 'katax-service-manager';
 
+// Compile-time cast
+const sql = katax.db('main') as ISqlDatabase;
+const users = await sql.query<User[]>('SELECT * FROM users WHERE id = $1', [userId]);
+
+// Or the DatabaseService helpers (also check the type at runtime)
+const db = katax.db('main') as DatabaseService;
 db.asSql()    // ISqlDatabase — query<T>(sql, params?), getClient(), close()
 db.asMongo()  // IMongoDatabase — getClient(), close()
 db.asRedis()  // IRedisDatabase — redis(...args), close()
 
-// SQL query
-const users = await db.asSql().query<User[]>('SELECT * FROM users WHERE id = $1', [userId]);
-
-// Redis command
-await db.asRedis().redis('SET', 'key', 'value', 'EX', '60');
-await db.asRedis().redis('GET', 'key');`}</code></pre>
+const redis = katax.db('cache') as IRedisDatabase;
+await redis.redis('SET', 'key', 'value', 'EX', '60');   // RESP2 replies`}</code></pre>
         </section>
 
         <!-- ── Cache ── -->
@@ -700,14 +805,15 @@ katax.logger.fatal('fatal error');
 const log = katax.logger.child({ service: 'payments', userId: 123 });
 log.info({ message: 'Payment processed' });
 
-// Broadcast to WebSocket
-katax.logger.info({ message: 'Trade executed', broadcast: true, room: 'admins' });`}</code></pre>
+// Routing options go in the second argument (never sent to transports)
+katax.logger.info({ message: 'Trade executed', amount: 100 }, { broadcast: true, room: 'admins' });
+katax.logger.error('Payment failed', { persist: true, skipTelegram: true });`}</code></pre>
 
           <h3>Transports</h3>
           <pre><code>{`import { RedisTransport, TelegramTransport, CallbackTransport } from 'katax-service-manager';
 
 // Redis transport
-const redisTransport = new RedisTransport(katax.db('cache'), {
+const redisTransport = new RedisTransport(katax.db('cache') as IRedisDatabase, {
   streamKey: 'katax:logs', name: 'redis-errors',
 });
 redisTransport.filter = (log) => log.level === 'error' || log.persist === true;
@@ -760,7 +866,7 @@ const ws = katax.ws('main');`}</code></pre>
                 <tr><td><code>hasConnectedClients()</code></td><td>Any clients connected?</td></tr>
                 <tr><td><code>getConnectedClientsCount()</code></td><td>Total connected clients</td></tr>
                 <tr><td><code>close()</code></td><td>Close WebSocket server</td></tr>
-                <tr><td><code>getServer()</code></td><td>Underlying Socket.IO Server</td></tr>
+                <tr><td><code>getServer()</code></td><td>Underlying Socket.IO Server (on the class, not on the <code>IWebSocketService</code> type: cast to use it)</td></tr>
               </tbody>
             </table>
           </div>
@@ -777,7 +883,8 @@ const ws = katax.ws('main');`}</code></pre>
         <section id="sm-cron" class="doc-section">
           <div class="section-accent"></div>
           <h2><span class="section-icon">&#9679;</span> Cron Service</h2>
-          <pre><code>{`katax.cron({
+          <p>Loads <code>node-cron</code> on first use. <code>katax.cron()</code> returns a Promise: await it to catch invalid schedules. <code>katax.cronService</code> is available after the first <code>katax.cron()</code>.</p>
+          <pre><code>{`await katax.cron({
   name: 'process-assets',
   schedule: '*/10 6-15 * * 1-5',
   task: processAssets,
@@ -788,7 +895,7 @@ const ws = katax.ws('main');`}</code></pre>
 
 // Advanced management
 katax.cronService.getJobs();
-katax.cronService.startJob('process-assets');
+await katax.cronService.startJob('process-assets');
 katax.cronService.stopJob('process-assets');
 katax.cronService.removeJob('process-assets');
 katax.cronService.stopAll();`}</code></pre>
@@ -865,10 +972,7 @@ hb?.stop();`}</code></pre>
         <section id="sm-bootstrap" class="doc-section">
           <div class="section-accent"></div>
           <h2><span class="section-icon">&#9679;</span> Bootstrap Template</h2>
-          <pre><code>{`import dotenv from 'dotenv';
-dotenv.config();
-
-import { katax } from 'katax-service-manager';
+          <pre><code>{`import { katax } from 'katax-service-manager';
 import { createServer } from 'http';
 import app from './app.js';
 
@@ -900,11 +1004,12 @@ async function bootstrap(): Promise<void> {
     const httpServer = createServer(app);
     await katax.socket({ name: 'main', httpServer, cors: { origin: '*' } });
 
-    katax.cron({ name: 'cleanup', schedule: '0 3 * * *', task: async () => { /* nightly */ } });
+    await katax.cron({ name: 'cleanup', schedule: '0 3 * * *', task: async () => { /* nightly */ } });
 
     httpServer.listen(PORT, () => {
       katax.logger.info({ message: 'Server running on http://localhost:' + PORT });
     });
+    // SIGTERM/SIGINT are handled by katax (graceful shutdown)
   } catch (err) {
     console.error('Bootstrap failed:', err);
     process.exit(1);
@@ -924,11 +1029,11 @@ void bootstrap();`}</code></pre>
           <div class="cards">
             <article class="card">
               <h3>Scaffold <span>init</span></h3>
-              <p>Complete Express + TypeScript project with interactive prompts for DB, auth, validation, Swagger, WebSocket, Redis, and deployment config.</p>
+              <p>Complete Express + TypeScript project with interactive prompts for DB, auth, validation, Swagger, katax-service-manager, WebSocket and Redis. Installs dependencies.</p>
             </article>
             <article class="card">
               <h3>Generate <span>endpoint &amp; CRUD</span></h3>
-              <p>Generates validators, controllers, handlers, and routes. Nested resources supported. Auto-regenerates OpenAPI docs.</p>
+              <p>Generates validators, controllers, handlers and routes (controllers start with sample data + TODOs). Nested resources supported. Auto-regenerates OpenAPI docs.</p>
             </article>
             <article class="card">
               <h3>Deploy <span>PM2</span></h3>
@@ -948,25 +1053,16 @@ void bootstrap();`}</code></pre>
             <table>
               <thead><tr><th style="width:25%">Flag</th><th>Description</th></tr></thead>
               <tbody>
-                <tr><td><code>-f, --force</code></td><td>Overwrite existing directory</td></tr>
-                <tr><td><code>--pm &lt;npm|pnpm&gt;</code></td><td>Package manager (default: pnpm)</td></tr>
-                <tr><td><code>--ignore-scripts</code></td><td>Disable lifecycle scripts</td></tr>
-                <tr><td><code>--write-npmrc</code></td><td>Write .npmrc for reproducible installs</td></tr>
+                <tr><td><code>-f, --force</code></td><td>Use an existing directory (files are overwritten)</td></tr>
+                <tr><td><code>--pm &lt;npm|pnpm&gt;</code></td><td>Default package manager in the prompt (default: pnpm)</td></tr>
+                <tr><td><code>--ignore-scripts</code></td><td>Default answer: install with lifecycle scripts disabled</td></tr>
+                <tr><td><code>--write-npmrc</code></td><td>Default answer: write <code>.npmrc</code> with <code>ignore-scripts=true</code></td></tr>
               </tbody>
             </table>
           </div>
 
           <h3><code>katax add endpoint &lt;name&gt;</code></h3>
-          <p>Add a new endpoint with validator, controller, handler, and routes.</p>
-          <div class="table-wrapper">
-            <table>
-              <thead><tr><th style="width:25%">Flag</th><th>Description</th></tr></thead>
-              <tbody>
-                <tr><td><code>-m, --method &lt;method&gt;</code></td><td>HTTP method (GET, POST, PUT, DELETE) &mdash; default: <code>POST</code></td></tr>
-                <tr><td><code>-p, --path &lt;path&gt;</code></td><td>Custom route path</td></tr>
-              </tbody>
-            </table>
-          </div>
+          <p>Add a new endpoint with validator, controller, handler, and routes. HTTP methods, rate limiter and body fields are chosen in prompts; the route comes from the name (<code>admin/users</code> &rarr; <code>/api/admin/users</code>). The <code>-m</code> and <code>-p</code> flags are accepted but currently ignored.</p>
 
           <h3><code>katax generate crud &lt;resource-name&gt;</code></h3>
           <p>Aliases: <code>gen</code>, <code>g</code>. Generates CRUD endpoints: list, get by ID, create, update, delete.</p>
@@ -974,15 +1070,16 @@ void bootstrap();`}</code></pre>
             <table>
               <thead><tr><th style="width:25%">Flag</th><th>Description</th></tr></thead>
               <tbody>
-                <tr><td><code>--no-auth</code></td><td>Skip authentication middleware</td></tr>
+                <tr><td><code>--no-auth</code></td><td>Default "no" for the auth prompt. Auth uses <code>authenticateToken</code> from <code>jwt.utils.ts</code> (JWT projects only)</td></tr>
               </tbody>
             </table>
           </div>
 
           <h3><code>katax generate repository &lt;name&gt;</code></h3>
-          <p>Data access layer with typed methods: <code>findAll()</code>, <code>findById()</code>, <code>exists()</code>, <code>create()</code>, <code>update()</code>, <code>delete()</code>.</p>
+          <p>Writes <code>src/api/&lt;name&gt;/&lt;name&gt;.repository.ts</code>: a class over a <code>katax.database()</code> connection (PostgreSQL, MySQL or MongoDB) with <code>findAll()</code>, <code>findById()</code>, <code>exists()</code>, <code>create()</code>, <code>update()</code>, <code>delete()</code>.</p>
 
           <h3><code>katax generate docs</code></h3>
+          <p>Writes an OpenAPI 3.0 spec to <code>src/openapi.json</code> and Swagger UI at <code>/docs</code>. Run <code>katax fix docs</code> once so the build copies the spec to <code>dist/</code> for production.</p>
           <div class="table-wrapper">
             <table>
               <thead><tr><th style="width:25%">Flag</th><th>Description</th></tr></thead>
@@ -996,7 +1093,7 @@ void bootstrap();`}</code></pre>
           </div>
 
           <h3><code>katax info</code></h3>
-          <p>Aliases: <code>status</code>, <code>ls</code>. Shows project structure, dependencies, and routes.</p>
+          <p>Aliases: <code>status</code>, <code>ls</code>. Shows project info, katax package versions (and available updates), and routes.</p>
 
           <h3>Deploy</h3>
           <pre><code>{`katax deploy init       # Initial PM2 setup (repo, branch, path, cluster, memory, env)
@@ -1011,7 +1108,10 @@ katax deploy logs       # View PM2 logs
   -l, --lines <n>
   -f, --follow
   -a, --app-name <name>
-katax deploy status     # Show PM2 apps`}</code></pre>
+katax deploy status     # Show PM2 apps
+
+# Default is cluster mode with max instances: pick 1 instance when using
+# Socket.IO (needs sticky sessions) or the in-memory rate limiter.`}</code></pre>
 
           <h3>Fix</h3>
           <pre><code>{`katax fix docs        # Patch build script to copy openapi.json
@@ -1027,7 +1127,7 @@ katax fix list        # List available patches`}</code></pre>
 
           <h3>Examples</h3>
           <pre><code>{`katax init my-api --pm pnpm --ignore-scripts --write-npmrc
-katax add endpoint admin/audit/logs -m POST
+katax add endpoint admin/audit/logs
 katax generate crud admin/users --no-auth
 katax generate repository products
 katax generate docs -u https://api.example.com
@@ -1042,11 +1142,11 @@ katax deploy update -b production --hard`}</code></pre>
           <div class="reference-grid">
             <article class="reference-card">
               <h4>Validator Generator</h4>
-              <p><code>k.object()</code> schemas with per-field validation, async validators and <code>kataxInfer</code> inference.</p>
+              <p><code>k.object()</code> schemas per field, <code>kataxInfer</code> types and <code>validate*()</code> functions built on <code>validateSchema()</code>.</p>
             </article>
             <article class="reference-card">
               <h4>Controller Generator</h4>
-              <p>Business logic with <code>ControllerResult&lt;T&gt;</code>, <code>createSuccessResult()</code>, <code>createErrorResult()</code>.</p>
+              <p>Business logic returning <code>ControllerResult&lt;T&gt;</code> via <code>createResponse.success()</code> / <code>createResponse.error()</code>.</p>
             </article>
             <article class="reference-card">
               <h4>Handler Generator</h4>
@@ -1058,7 +1158,7 @@ katax deploy update -b production --hard`}</code></pre>
             </article>
             <article class="reference-card">
               <h4>Router Updater</h4>
-              <p>AST-based update of main <code>routes.ts</code>. Prevents duplicates.</p>
+              <p>Adds the import and <code>router.use()</code> to the main <code>routes.ts</code>. Prevents duplicates.</p>
             </article>
             <article class="reference-card">
               <h4>OpenAPI Generator</h4>
@@ -1071,7 +1171,8 @@ katax deploy update -b production --hard`}</code></pre>
             <article class="reference-card">
               <h4>API Utils</h4>
               <ul>
-                <li><code>ControllerResult&lt;T&gt;</code> type</li>
+                <li><code>ControllerResult&lt;T&gt;</code> type (with pagination and cookies)</li>
+                <li><code>createResponse.success/error/validation/unauthorized/forbidden/custom</code></li>
                 <li><code>createSuccessResult()</code> &middot; <code>createErrorResult()</code></li>
                 <li><code>validateSchema()</code></li>
                 <li><code>sendResponse()</code></li>
@@ -1083,14 +1184,14 @@ katax deploy update -b production --hard`}</code></pre>
               <ul>
                 <li><code>initSSE()</code> &middot; <code>sendSSEEvent()</code></li>
                 <li><code>sendSSEComment()</code> &middot; <code>closeSSE()</code></li>
-                <li><code>SSEStream</code> class</li>
+                <li><code>SSEStream</code> class (<code>send</code>, <code>sendError</code>, <code>close</code>, <code>isClosed</code>)</li>
                 <li><code>sendChunked()</code> &middot; <code>streamAsyncIterator()</code> &middot; <code>streamArray()</code></li>
               </ul>
             </article>
             <article class="reference-card">
               <h4>Auth Utils</h4>
               <ul>
-                <li><code>hashPassword()</code> &middot; <code>verifyPassword()</code> (bcrypt)</li>
+                <li><code>hashPassword()</code> &middot; <code>verifyPassword()</code> (bcryptjs)</li>
                 <li><code>hashPasswordArgon2()</code> &middot; <code>verifyPasswordArgon2()</code></li>
                 <li><code>generateToken()</code> &middot; <code>verifyToken()</code> &middot; <code>decodeToken()</code> &middot; <code>generateRefreshToken()</code> (JWT)</li>
                 <li><code>generateRandomToken()</code> &middot; <code>generateNumericCode()</code></li>
@@ -1099,15 +1200,11 @@ katax deploy update -b production --hard`}</code></pre>
             </article>
           </div>
 
-          <h3>Result Pattern &amp; Errors</h3>
-          <pre><code>{`// Result<T, E> pattern
-import { ok, err, isOk, isErr, map, mapErr, flatMap, ifOk, ifErr,
-  unwrap, unwrapOr, tryCatch, tryCatchAsync, combine, match } from './core/result.js';
+          <h3>JWT Middleware (<code>jwt.utils.ts</code>)</h3>
+          <pre><code>{`import { authenticateToken, requireRole, generateTokens } from '../shared/jwt.utils.js';
 
-// AppError hierarchy
-import { AppError, ValidationError, AuthenticationError,
-  AuthorizationError, NotFoundError, ConflictError,
-  DatabaseError, ExternalServiceError, isAppError } from './core/errors.js';`}</code></pre>
+router.get('/admin', authenticateToken, requireRole('admin'), handler);
+const { accessToken, refreshToken } = generateTokens({ userId: user.id, email: user.email });`}</code></pre>
         </section>
 
         <!-- ── Skill ── -->
@@ -1125,7 +1222,7 @@ import { AppError, ValidationError, AuthenticationError,
             <article class="reference-card">
               <h4>What it covers</h4>
               <ul>
-                <li>Versions: core 1.6.5, service-manager 0.5.9, cli 1.5.2</li>
+                <li>Versions and exports of each package</li>
                 <li>All schema types and their methods</li>
                 <li>All services and their API</li>
                 <li>All CLI commands with options</li>
@@ -1188,9 +1285,9 @@ import { AppError, ValidationError, AuthenticationError,
           <div class="section-accent"></div>
           <h2><span class="section-icon">&#9679;</span> Current Published Status</h2>
           <ul>
-            <li><strong>katax-core 1.6.5:</strong> 20+ schema types, coercion, async validation, file/base64, advanced email, union/intersection/lazy, preprocess, error utilities.</li>
-            <li><strong>katax-service-manager 0.5.9:</strong> Singleton/instance, typed DB (PostgreSQL/MySQL/MongoDB/Redis), cache, cron, WebSocket with auth, transports (Redis/Telegram/Callback), registry, health, lifecycle hooks, stream bridge, heartbeat.</li>
-            <li><strong>katax-cli 1.5.2:</strong> Init with advanced prompts, CRUD/endpoint/repository generators, OpenAPI docs, PM2 deploy (init/update/rollback/logs/status), fixes, nested resources, typed access.</li>
+            <li><strong>katax-core 1.6.5:</strong> 30+ schema types, coercion, async validation, <code>validateSchema()</code>, file/base64, advanced email, union/intersection/discriminated union/lazy, preprocess, JSON Schema 2020-12 output, error utilities. <em>Next release:</em> <code>toJsonSchema()</code> fixes (nullable, integer, strict, discriminated, recursive <code>$ref</code>) and <code>k.lazy(fn, name)</code>.</li>
+            <li><strong>katax-service-manager 0.6.1:</strong> Singleton/instance, typed DB (PostgreSQL/MySQL/MongoDB/Redis, RESP2), cache, cron and WebSocket loaded lazily (truly optional peers), transports (Redis/Telegram/Callback), registry, health, lifecycle hooks, stream bridge, heartbeat, automatic SIGTERM/SIGINT shutdown.</li>
+            <li><strong>katax-cli 1.6.2:</strong> Init with advanced prompts and pinned katax versions, update notices, CRUD/endpoint/repository generators, OpenAPI docs, PM2 deploy (init/update/rollback/logs/status), fixes, nested resources with safe path validation.</li>
           </ul>
         </section>
       </main>

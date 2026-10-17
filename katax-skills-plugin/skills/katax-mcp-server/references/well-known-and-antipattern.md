@@ -6,6 +6,8 @@ MCP clients auto-discover an API's OAuth endpoints via two standard `/.well-know
 
 ```ts
 // src/app.ts — registered before the /api router, at root
+import { authorizationServerMetadataHandler, protectedResourceMetadataHandler } from './mcp/oauth.controller.js';
+
 app.get('/.well-known/oauth-protected-resource', protectedResourceMetadataHandler);
 app.get('/.well-known/oauth-authorization-server', authorizationServerMetadataHandler);
 ```
@@ -15,10 +17,12 @@ app.get('/.well-known/oauth-authorization-server', authorizationServerMetadataHa
 Tells a client which authorization server protects this resource:
 
 ```ts
-function protectedResourceMetadataHandler(req: Request, res: Response) {
+// src/mcp/oauth.controller.ts — URLs come from src/mcp/mcp.config.ts (see oauth.md)
+export function protectedResourceMetadataHandler(_req: Request, res: Response): void {
   res.json({
-    resource: `${BASE_URL}/api/mcp`,
-    authorization_servers: [BASE_URL],
+    resource: getMcpResourceUrl(),               // https://api.example.com/api/mcp
+    authorization_servers: [getMcpBaseUrl()],    // https://api.example.com
+    bearer_methods_supported: ['header']
   });
 }
 ```
@@ -28,31 +32,33 @@ function protectedResourceMetadataHandler(req: Request, res: Response) {
 Full metadata describing how to talk to the authorization server (this API's own `/register`/`/authorize`/`/token` endpoints — see `oauth.md`):
 
 ```ts
-function authorizationServerMetadataHandler(req: Request, res: Response) {
+export function authorizationServerMetadataHandler(_req: Request, res: Response): void {
   res.json({
-    issuer: BASE_URL,
-    authorization_endpoint: `${BASE_URL}/api/mcp/authorize`,
-    token_endpoint: `${BASE_URL}/api/mcp/token`,
-    registration_endpoint: `${BASE_URL}/api/mcp/register`,
+    issuer: getMcpBaseUrl(),
+    authorization_endpoint: getMcpAuthorizationEndpoint(), // …/api/mcp/authorize
+    token_endpoint: getMcpTokenEndpoint(),                 // …/api/mcp/token
+    registration_endpoint: getMcpRegistrationEndpoint(),   // …/api/mcp/register
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code', 'refresh_token'],
     code_challenge_methods_supported: ['S256'],
-    token_endpoint_auth_methods_supported: ['none'],
+    token_endpoint_auth_methods_supported: ['none']
   });
 }
 ```
 
 The exact field names matter — MCP clients parse this metadata programmatically. Copy the shape above rather than improvising field names.
 
-## Anti-Pattern: Hand-Rolled JSON-RPC Without SDK/OAuth/Discovery
+## Anti-pattern: tools that re-implement or proxy the REST API
 
-A third real repo (`api-time-to-drama`) implements an MCP-*shaped* endpoint without the official SDK or any of the above:
+`api-time-to-drama` shows what to avoid, in two generations:
 
-- A single `POST /api/mcp` handler manually parsing JSON-RPC 2.0 (`method: "initialize" | "tools/list" | "tools/call"`), hand-building the responses instead of using `Server`/`StreamableHTTPServerTransport`.
-- No OAuth layer at all — auth is just the app's existing Bearer JWT / API-key middleware, reused as-is.
-- No `/.well-known/*` discovery — a client has to be told the endpoint URL out-of-band; it can't auto-discover it.
-- Tools execute by **`fetch()`-ing the app's own REST routes internally** rather than calling controller functions directly — an extra HTTP round-trip (to itself) per tool call, and the tool's `inputSchema` is a hand-written JSON Schema literal, duplicated by hand alongside the real katax-core validator instead of derived from it via `toJsonSchema()`.
+- **Hand-rolled stage (older):** `POST /api/mcp` parsed JSON-RPC 2.0 by hand (`initialize` / `tools/list` / `tools/call`) with the app's API-key/JWT middleware and no discovery; a separate `mcp-timetodrama-api` package is a stdio proxy that relays every JSON-RPC call to that endpoint with an `x-api-key`. Generic clients can't discover or authenticate against it.
+- **Current stage:** it now uses the SDK, the OAuth layer and `/.well-known/*` like the reference, but its tools still come from a hand-written `tool-definitions.ts` (~100 KB of JSON Schema literals) and each call is **forwarded over HTTP to the API's own REST routes**, after minting a normal web access token for the MCP identity (`mcp-web-bridge.utils.ts`).
 
-This "works" in the narrow sense that a JSON-RPC-speaking client can call it, but it's missing everything that makes an MCP server *interoperable* with a generic client (standards-compliant discovery, OAuth) and *maintainable* (schema duplication between REST validator and hand-written tool schema, an extra internal HTTP hop per tool call).
+Why it's worse than the reference pattern:
 
-**If you find this pattern in an existing repo, prefer migrating it to the `@modelcontextprotocol/sdk` + OAuth 2.1 + well-known pattern documented in `server-and-tools.md` and `oauth.md`, rather than extending the hand-rolled version further.** Don't use the hand-rolled JSON-RPC approach as a reference when building something new.
+- The tool schemas drift from the katax-core validators because they are maintained twice; `inputSchema()` from the same schema can't drift.
+- Every tool call pays an extra HTTP round-trip to itself and re-runs the whole Express stack (CORS, limiters, logging).
+- Minting web tokens for MCP calls undoes the separation between MCP and web credentials described in `oauth.md`.
+
+**New servers:** build tools with `inputSchema()` + `withValid()` and call the controllers directly (`server-and-tools.md`). **Existing repos with this pattern:** migrate one domain at a time — replace its forwarded tools with registry tools that call the controller, then delete those entries from the hand-written definitions.

@@ -1,111 +1,210 @@
 # OAuth 2.1 for MCP Clients
 
-MCP clients (Claude's connector, `claude.ai`) need to authenticate against your API independently of your app's own login system. The reference pattern (from `api-property-scout`, `api-second-brain`) implements a **separate, self-contained OAuth 2.1 layer** specifically for MCP — distinct JWT secrets, distinct token endpoints, distinct storage — rather than reusing the app's regular session auth.
+MCP clients (the Claude connector, claude.ai) authenticate against your API through a **separate OAuth 2.1 layer**, independent of the app's own login: dynamic client registration (RFC 7591), PKCE `S256`, MCP-only JWTs. The code below is the current reference, `api-habit-forge` (`src/mcp/`), which keeps **no OAuth state in Redis or the database**: the client registration and the authorization codes are signed JWTs.
 
-## Why a separate layer
+## Files
 
-- MCP clients register themselves dynamically (RFC 7591) — you don't pre-provision API keys for them like a normal third-party integration.
-- The MCP spec requires PKCE and specific discovery metadata (see `well-known-and-antipattern.md`) that a normal app login flow doesn't have.
-- Keeping MCP-issued JWTs on a separate secret from the app's session JWT means a leaked/compromised MCP token can't be used to forge a regular user session, and vice versa.
-
-## Endpoints
-
-Mounted under `/api/mcp` (or wherever your MCP router lives):
-
-### `POST /register` — Dynamic Client Registration (RFC 7591)
-
-Accepts a client's self-description (`client_name`, `redirect_uris`, etc.), stores it, returns a `client_id` (and `client_secret` if using confidential clients). No pre-approval step — any MCP client can self-register.
-
-```ts
-router.post('/register', async (req, res) => {
-  const clientId = randomUUID();
-  await mcpOauthStore.saveClient(clientId, { redirectUris: req.body.redirect_uris, clientName: req.body.client_name });
-  res.json({ client_id: clientId, redirect_uris: req.body.redirect_uris, /* ... */ });
-});
+```
+src/mcp/
+├── mcp.config.ts           # every public URL + isMcpPath()
+├── mcp-jwt.utils.ts        # secrets, access/refresh tokens, signed client_id, signed auth codes
+├── oauth.controller.ts     # well-known handlers, /register, /authorize (GET+POST), /token
+├── mcp-auth.middleware.ts  # requireMcpAuth (401 + WWW-Authenticate)
+├── mcp.limiters.ts         # register / authorize / token / mcp limiters
+├── mcp.routes.ts           # mounted at /api/mcp
+├── mcp.types.ts            # McpIdentity { userId, email }
+└── mcp.server.ts + tools/  # see server-and-tools.md
 ```
 
-### `GET /authorize` + `POST /authorize` — Authorization with PKCE (S256)
-
-- `GET` renders a server-side HTML login form (username/password), embedding the OAuth params (`client_id`, `redirect_uri`, `code_challenge`, `state`) as hidden fields — this is why the form **posts to itself** (same origin) before redirecting cross-origin to the client's `redirect_uri`. This is also why CORS/Helmet need the specific adjustments in `katax-ecosystem/references/production-hardening.md` (self-origin in CORS allow-list; `form-action` CSP override).
-- `POST` validates credentials against the app's own user table (`verifyPassword`), generates a single-use authorization code, stores it in Redis with the PKCE `code_challenge` attached and a short TTL, then redirects to `redirect_uri?code=...&state=...`.
+## URLs in one place (`mcp.config.ts`)
 
 ```ts
-// POST /authorize
-const user = await verifyCredentials(req.body.email, req.body.password);
-if (!user) return res.render('login', { error: 'Invalid credentials' });
+export function getMcpBaseUrl(): string {
+  const explicit = process.env.MCP_BASE_URL || process.env.PRODUCTION_URL;
+  if (explicit) return explicit.replace(/\/$/, '');
+  return `http://localhost:${process.env.PORT || DEFAULT_PORT}`;
+}
 
-const code = randomUUID();
-await mcpOauthStore.saveAuthCode(code, {
-  userId: user.id,
-  clientId: req.body.client_id,
-  codeChallenge: req.body.code_challenge, // PKCE S256
-  redirectUri: req.body.redirect_uri,
-}, 120); // seconds TTL
+export const getMcpResourceUrl = (): string => `${getMcpBaseUrl()}/api/mcp`;
+export const getMcpAuthorizationEndpoint = (): string => `${getMcpBaseUrl()}/api/mcp/authorize`;
+export const getMcpTokenEndpoint = (): string => `${getMcpBaseUrl()}/api/mcp/token`;
+export const getMcpRegistrationEndpoint = (): string => `${getMcpBaseUrl()}/api/mcp/register`;
+export const getProtectedResourceMetadataUrl = (): string => `${getMcpBaseUrl()}/.well-known/oauth-protected-resource`;
 
-res.redirect(`${req.body.redirect_uri}?code=${code}&state=${req.body.state}`);
-```
-
-### `POST /token` — Token Exchange
-
-Two grant types:
-
-- `authorization_code`: exchanges the one-time code for an access + refresh token pair. Verifies PKCE by hashing the client-supplied `code_verifier` (SHA-256, base64url) and comparing to the stored `code_challenge`. The code is deleted immediately on use (single-use, `GET` then `DEL` in Redis) — replay is rejected.
-- `refresh_token`: issues a new access token from a valid MCP refresh token.
-
-```ts
-if (grantType === 'authorization_code') {
-  const stored = await mcpOauthStore.getAuthCode(code); // GET, then DEL — single use
-  if (!stored) return res.status(400).json({ error: 'invalid_grant' });
-  const computedChallenge = base64url(sha256(codeVerifier));
-  if (computedChallenge !== stored.codeChallenge) return res.status(400).json({ error: 'invalid_grant' });
-
-  const accessToken = signMcpJwt({ sub: stored.userId, clientId: stored.clientId }, MCP_JWT_SECRET, '15m');
-  const refreshToken = signMcpJwt({ sub: stored.userId, clientId: stored.clientId }, MCP_JWT_REFRESH_SECRET, '30d');
-  res.json({ access_token: accessToken, refresh_token: refreshToken, token_type: 'Bearer', expires_in: 900 });
+/** MCP/OAuth paths get their own CORS and rate limits (used by the CORS split and the /api limiter's skip). */
+export function isMcpPath(path: string): boolean {
+  return path.startsWith('/.well-known/') || path === '/api/mcp' || path.startsWith('/api/mcp/');
 }
 ```
 
-## JWT Secrets — Keep Separate
+Set `MCP_BASE_URL` in production: it is the `issuer`, the `resource` and the base of every advertised endpoint, so it must be the public HTTPS origin (not `localhost`).
 
-```
-MCP_JWT_SECRET          ← MCP access token secret (NOT the app's session JWT secret)
-MCP_JWT_REFRESH_SECRET  ← MCP refresh token secret
-```
-
-Easy mistake to make: reusing the app's regular `JWT_SECRET` for MCP tokens. Don't — a token minted for MCP scope should never verify successfully against the app's normal session-auth middleware, and vice versa.
-
-## Auth Middleware for Tool Calls
+## Routes (`mcp.routes.ts`)
 
 ```ts
-export async function requireMcpAuth(req: Request, res: Response, next: NextFunction) {
-  const token = req.headers.authorization?.replace(/^Bearer /, '');
-  const payload = token && verifyMcpAccessToken(token);
-  if (!payload) {
-    res.setHeader(
-      'WWW-Authenticate',
-      `Bearer error="invalid_token", resource_metadata="${mcpConfig.protectedResourceMetadataUrl}"`
-    );
-    return res.status(401).json({ error: 'invalid_token' });
+router.post('/register', registerLimiter, registerClientHandler);
+router.get('/authorize', authorizeGetHandler);                    // renders the login page
+router.post('/authorize', authorizeLimiter, authorizePostHandler); // checks the password, redirects with ?code
+router.post('/token', tokenLimiter, tokenHandler);
+router.post('/', mcpLimiter, requireMcpAuth, /* stateless transport, see server-and-tools.md */);
+```
+
+The login form and `/token` send `application/x-www-form-urlencoded` bodies: `app.ts` needs `express.urlencoded()` as well as `express.json()`.
+
+## Secrets and tokens (`mcp-jwt.utils.ts`)
+
+```ts
+export interface McpTokenPayload { userId: string; email: string; clientId: string }
+
+function derive(label: string, base: string | undefined): string {
+  if (!base || base.trim() === '') throw new Error('JWT_SECRET / JWT_REFRESH_SECRET are required for the MCP server');
+  return createHmac('sha256', base).update(label).digest('hex');
+}
+
+const accessSecret = () => process.env.MCP_JWT_SECRET?.trim() || derive('mcp-access', process.env.JWT_SECRET);
+const refreshSecret = () => process.env.MCP_JWT_REFRESH_SECRET?.trim() || derive('mcp-refresh', process.env.JWT_REFRESH_SECRET);
+const stateSecret = () => derive('mcp-state', process.env.MCP_JWT_SECRET?.trim() || process.env.JWT_SECRET);
+
+export const MCP_ACCESS_TOKEN_EXPIRY_SECONDS = parseInt(process.env.MCP_JWT_EXPIRES_IN_SECONDS || '3600', 10); // 1 h
+export const MCP_REFRESH_TOKEN_EXPIRY_SECONDS = parseInt(
+  process.env.MCP_JWT_REFRESH_EXPIRES_IN_SECONDS || String(60 * 60 * 24 * 180), 10);                          // 180 days
+
+export const generateMcpAccessToken = (p: McpTokenPayload) =>
+  jwt.sign({ ...p, typ: 'mcp_access' }, accessSecret(), { expiresIn: MCP_ACCESS_TOKEN_EXPIRY_SECONDS });
+export const generateMcpRefreshToken = (p: McpTokenPayload) =>
+  jwt.sign({ ...p, typ: 'mcp_refresh' }, refreshSecret(), { expiresIn: MCP_REFRESH_TOKEN_EXPIRY_SECONDS });
+
+function verifyTyped(token: string, secret: string, typ: string): McpTokenPayload | null {
+  try {
+    const d = jwt.verify(token, secret) as McpTokenPayload & { typ?: string };
+    if (d.typ !== typ || !d.userId) return null;
+    return { userId: d.userId, email: d.email, clientId: d.clientId };
+  } catch {
+    return null;
   }
-  req.mcpIdentity = { userId: payload.sub, clientId: payload.clientId };
+}
+export const verifyMcpAccessToken = (t: string) => verifyTyped(t, accessSecret(), 'mcp_access');
+export const verifyMcpRefreshToken = (t: string) => verifyTyped(t, refreshSecret(), 'mcp_refresh');
+```
+
+- Separate secrets (explicit `MCP_JWT_*`, or HMAC-derived from the app secrets so no new env var is required) **plus** the `typ` claim: a web token never verifies on `/api/mcp` and an MCP token never verifies on the web API.
+- The long refresh lifetime is deliberate: the Claude connector shouldn't ask the user to log in again every few days.
+
+### Stateless client registration and auth codes
+
+```ts
+// client_id IS the registration: a signed token with the client name and redirect URIs
+export const createClientId = (c: { clientName?: string; redirectUris: string[] }) =>
+  jwt.sign({ typ: 'mcp_client', name: c.clientName, uris: c.redirectUris }, stateSecret());
+// readClientId(clientId) → verifies, checks typ === 'mcp_client', returns { clientName, redirectUris } | null
+
+// authorization code: signed, 120 s, with a jti burned on first use
+export const createAuthCode = (d: McpAuthCode) =>
+  jwt.sign({ typ: 'mcp_code', ...d }, stateSecret(), { expiresIn: 120, jwtid: randomUUID() });
+// consumeAuthCode(code) → verifies typ === 'mcp_code', rejects a jti already in the in-process usedCodes map,
+// records it until exp, returns { clientId, redirectUri, codeChallenge, userId, email } | null
+```
+
+Registrations survive restarts and deploys and there is no table to clean up. The used-codes map is per process: with several instances a code could be replayed on another instance inside its 120 s window — PKCE still blocks a stolen code, and the house default is one PM2 instance anyway.
+
+## `POST /register` (RFC 7591)
+
+```ts
+export function registerClientHandler(req: Request, res: Response): void {
+  const redirectUris: unknown = req.body?.redirect_uris;
+  if (!Array.isArray(redirectUris) || redirectUris.length === 0 || redirectUris.length > 10 ||
+      !redirectUris.every((uri) => typeof uri === 'string' && isAllowedRedirectUri(uri))) {
+    res.status(400).json({ error: 'invalid_redirect_uri',
+      error_description: 'redirect_uris must be a non-empty array of https (or loopback http) URLs' });
+    return;
+  }
+  const clientName = typeof req.body?.client_name === 'string' ? req.body.client_name.slice(0, 100) : undefined;
+  const clientId = createClientId({ clientName, redirectUris: redirectUris as string[] });
+  res.status(201).json({
+    client_id: clientId, client_name: clientName, redirect_uris: redirectUris,
+    token_endpoint_auth_method: 'none', grant_types: ['authorization_code', 'refresh_token'], response_types: ['code']
+  });
+}
+// isAllowedRedirectUri: https:, or http: only for localhost / 127.0.0.1 / [::1]
+```
+
+Public clients only (`token_endpoint_auth_method: 'none'`): no client secret, PKCE is the proof.
+
+## `GET` + `POST /authorize` (PKCE S256)
+
+`parseAuthorizeParams(source)` is shared by both: `response_type === 'code'`, a `client_id` that `readClientId` accepts, a `redirect_uri` registered for that client, a `code_challenge`, and `code_challenge_method === 'S256'`. Any failure → `400 text/plain` (never redirect to an unverified `redirect_uri`).
+
+- **GET** renders a small server-side HTML login page (every interpolated value through `escapeHtml`) whose form posts to `getMcpAuthorizationEndpoint()` with the OAuth params as hidden fields. Because the browser then follows a redirect to the client's origin, Helmet's CSP needs the `form-action` adjustment described in `katax-ecosystem` → `references/production-hardening.md`.
+- **POST** re-validates the params, loads the user through the **auth repository** (`findUserByEmail` — no SQL in the controller), rejects inactive users, checks `verifyPassword`, then:
+
+```ts
+const code = createAuthCode({
+  clientId: parsed.params.clientId, redirectUri: parsed.params.redirectUri,
+  codeChallenge: parsed.params.codeChallenge, userId: user.id, email: user.email
+});
+const redirect = new URL(parsed.params.redirectUri);
+redirect.searchParams.set('code', code);
+if (parsed.params.state) redirect.searchParams.set('state', parsed.params.state);
+res.redirect(302, redirect.toString());
+```
+
+Wrong credentials re-render the page with a generic message (200), never a JSON error.
+
+## `POST /token`
+
+```ts
+function verifyPkce(codeVerifier: string, codeChallenge: string): boolean {
+  const computed = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
+  const a = Buffer.from(computed), b = Buffer.from(codeChallenge);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function sendTokens(res: Response, payload: McpTokenPayload): void {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({
+    access_token: generateMcpAccessToken(payload), refresh_token: generateMcpRefreshToken(payload),
+    token_type: 'Bearer', expires_in: MCP_ACCESS_TOKEN_EXPIRY_SECONDS, scope: 'mcp'
+  });
+}
+```
+
+- `grant_type=authorization_code`: requires `code`, `redirect_uri`, `client_id`, `code_verifier` (else `invalid_request`); `consumeAuthCode` (else `invalid_grant`); `client_id` and `redirect_uri` must match the code; `verifyPkce`; then `sendTokens`.
+- `grant_type=refresh_token`: `verifyMcpRefreshToken`, then reload the user (`findUserById`) and refuse inactive accounts; `sendTokens` issues a new pair.
+- Anything else: `unsupported_grant_type`. Error responses also set `Cache-Control: no-store` and use the OAuth shape `{ error, error_description }`.
+
+## `requireMcpAuth`
+
+```ts
+function unauthorized(res: Response, reason: string): void {
+  res.setHeader('WWW-Authenticate',
+    `Bearer error="invalid_token", error_description="${reason}", resource_metadata="${getProtectedResourceMetadataUrl()}"`);
+  res.status(401).json({ error: 'invalid_token', error_description: reason });
+}
+
+export function requireMcpAuth(req: Request, res: Response, next: NextFunction): void {
+  const header = req.headers.authorization;
+  const token = header && header.startsWith('Bearer ') ? header.slice(7).trim() : null;
+  if (!token) return unauthorized(res, 'Missing bearer token');
+  const payload = verifyMcpAccessToken(token);
+  if (!payload) return unauthorized(res, 'Invalid or expired token');
+  (req as McpRequest).mcpIdentity = { userId: payload.userId, email: payload.email };
   next();
 }
 ```
 
-The `WWW-Authenticate` header pointing at the resource-metadata well-known URL is part of RFC 9728 — it's how a compliant MCP client discovers *where* to go re-authenticate after a 401, instead of failing silently.
+The `resource_metadata` parameter of `WWW-Authenticate` (RFC 9728) is how a client that gets a 401 finds the discovery document and starts (or restarts) the OAuth flow.
 
-## Redis-backed transient state
+## Rate limits (`mcp.limiters.ts`)
 
-Both auth codes and registered clients live in Redis via `katax.db('redis')` (not Postgres — this state is short-lived and doesn't need durability):
+| Limiter | Route | Limit | 429 body |
+|---|---|---|---|
+| `registerLimiter` | `POST /register` | 30 / hour | `{ error: 'rate_limited', error_description }` |
+| `authorizeLimiter` | `POST /authorize` | 10 / 15 min | plain text (it's an HTML form) |
+| `tokenLimiter` | `POST /token` | 60 / 15 min | `{ error: 'rate_limited', error_description }` |
+| `mcpLimiter` | `/api/mcp` (POST/GET/DELETE) | 1000 / 15 min | JSON-RPC `{ jsonrpc: '2.0', error: { code: -32029, ... }, id: null }` |
 
-```ts
-// registered clients: no TTL, persist until explicitly removed
-await redis.redis('SET', `mcp:client:${clientId}`, JSON.stringify(clientData));
+All use `standardHeaders: true, legacyHeaders: false`. The general `/api` limiter skips `isMcpPath()` so the buckets don't overlap.
 
-// auth codes: short TTL, single-use (GET then DEL)
-await redis.redis('SET', `mcp:code:${code}`, JSON.stringify(codeData), 'EX', '120');
-const raw = await redis.redis('GET', `mcp:code:${code}`);
-await redis.redis('DEL', `mcp:code:${code}`);
-```
+## Older variant (api-my-routine, api-property-scout)
 
-See `katax-ecosystem/references/katax-service-manager.md` for the general `katax.db('redis')` API this builds on.
+These store registered clients and authorization codes in Redis (`mcp-oauth.store.ts` over `katax.db('redis')`: `mcp:client:<id>` without TTL, `mcp:code:<code>` with `EX 120`, consumed with GET then DEL). It works, but it adds a dependency on Redis for login and loses every registration if Redis is flushed; GET-then-DEL is also not atomic (use `GETDEL`). Prefer the stateless version above for new servers.

@@ -1,445 +1,225 @@
-# katax-core — Validation Library
+# katax-core — Schema Validation
 
-Zod-inspired schema validation for request bodies, env vars, and runtime type-checking. Lightweight with only `date-fns` as dependency. Full package docs also live in the standalone `katax-core` skill — this reference exists so `katax-ecosystem` alone (without loading `katax-core` too) still has the complete API.
+> Same content as the standalone `katax-core` skill, kept here so the `katax-ecosystem` hub is self-contained. Update both together.
 
-## Quick Start
+Zod-style validation for TypeScript. Only runtime dependency: `date-fns`.
+
+**Version: 1.6.6** (`npm install katax-core`). 1.6.6 fixed `toJsonSchema()` for `nullable`/`nullish`/`integer`/`strict`/discriminated unions/recursive `lazy` — see "JSON Schema" below. Use `^1.6.6` in projects that expose schemas to OpenAPI or MCP.
+
+House style for where validators live and how they connect to controllers/repositories: `katax-ecosystem` skill → `references/api-architecture.md`.
+
+## The validator file pattern
+
+Every resource has one `<resource>.validator.ts` with three blocks: schemas, inferred types, `validate*` functions. Input types are **inferred, never hand-written**.
 
 ```ts
-import { k, type kataxInfer } from 'katax-core';
+import { k, kataxInfer } from 'katax-core';
+import type { ValidationResult } from '../../shared/api.utils.js';
+import { validateNormalized } from '../../shared/null.utils.js';
+import type { NullsToUndefined } from '../../shared/null.utils.js';
 
-const UserSchema = k.object({
-  email: k.email(),
-  name: k.string().minLength(2).maxLength(100),
-  age: k.number().min(18).optional(),
+export const dateSchema = k.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD').describe('Calendar date as YYYY-MM-DD.');
+
+/** Fields where null means "clear it" on update. */
+export const HABIT_CLEARABLE = ['tiny_action', 'reward'] as const;
+
+// ==================== SCHEMAS ====================
+export const habitIdParamSchema = k.object({
+  id: k.string().uuid('Invalid habit id').describe('Habit UUID.')
 });
 
-type User = kataxInfer<typeof UserSchema>;
+export const listHabitsQuerySchema = k.object({
+  active: k.coerce.boolean().optional().describe('true (default) = active, false = archived.'),
+  page: k.coerce.number().integer().min(1).optional().describe('1-based page number.')
+});
 
-const result = UserSchema.safeParse(req.body);
-if (!result.success) {
-  return res.status(400).json({ errors: result.issues });
+export const createHabitSchema = k.object({
+  name: k.string().minLength(1, 'Name is required').maxLength(120).describe('Habit name.'),
+  reward: k.string().nullish().describe('Reward shown on completion. Optional.'),
+  start_date: dateSchema.nullish().describe('First day. Defaults to today.')
+});
+
+export const updateHabitSchema = k.object({
+  name: k.string().minLength(1).maxLength(120).nullish().describe('New name.'),
+  reward: k.string().nullish().describe('New reward, or null to remove it.')
+});
+
+// ==================== INFERRED TYPES ====================
+export type HabitIdParam = kataxInfer<typeof habitIdParamSchema>;
+export type ListHabitsQuery = kataxInfer<typeof listHabitsQuerySchema>;
+export type CreateHabitInput = NullsToUndefined<kataxInfer<typeof createHabitSchema>>;
+export type UpdateHabitInput = NullsToUndefined<kataxInfer<typeof updateHabitSchema>, (typeof HABIT_CLEARABLE)[number]>;
+
+// ==================== VALIDATORS ====================
+export async function validateCreateHabit(data: unknown): Promise<ValidationResult<CreateHabitInput>> {
+  return validateNormalized(createHabitSchema, data);
+}
+
+export async function validateUpdateHabit(data: unknown): Promise<ValidationResult<UpdateHabitInput>> {
+  return validateNormalized(updateHabitSchema, data, HABIT_CLEARABLE);
 }
 ```
 
-## Core API — Schema Interface
+- `.describe()` on **every** field: the same text feeds OpenAPI and MCP tool schemas.
+- Reuse field schemas (`dateSchema`, `pageQuerySchema`) instead of redeclaring them.
+- `validateNormalized` (in `shared/null.utils.ts`, full code in `references/api-architecture.md` of the `katax-ecosystem` skill) = katax-core `validateSchema` + null normalization.
 
-Every schema implements:
+## optional vs nullable vs nullish — pick the right one
+
+`undefined` (missing key) and `null` (explicit empty) are different values. **`.optional()` rejects `null`** — that is by design, not a bug.
+
+| Modifier | `undefined` / missing key | `null` | In `toJsonSchema()` `required`? | TS type |
+|---|---|---|---|---|
+| (none) | ❌ | ❌ | yes | `T` |
+| `.optional()` | ✅ | ❌ | no | `T \| undefined` |
+| `.nullable()` | ❌ | ✅ | yes | `T \| null` |
+| `.nullish()` | ✅ | ✅ | no | `T \| null \| undefined` |
+| `.default(v)` | ✅ → `v` | ❌ | no | `T` |
+
+Which to use:
+
+| Situation | Use |
+|---|---|
+| Required body field | plain schema |
+| Optional field, REST-only client that omits it | `.optional()` |
+| Optional field that clients may send as `null` (MCP/Claude, HTML forms, mobile) | `.nullish()` + `validateNormalized` (nulls become `undefined`) |
+| PATCH field that can be cleared | `.nullish()` and list the key in the `keep` array → `undefined` = keep, `null` = clear |
+| Nullable column whose field must always be sent | `.nullable()` |
+| Query string param | `k.coerce.number()` / `k.coerce.boolean()` + `.optional()` — query values are strings and never `null` |
+| Default value | prefer `input.x ?? default` in the controller (keeps the default next to the business rule); `.default()` is fine for static defaults |
 
 ```ts
-Schema<T> {
-  parse(input: unknown): T                              // Throws KataxError on failure
-  safeParse(input: unknown): SafeParseResult<T>          // { success, data } | { success, issues }
-  validate(input: unknown): ValidationResult             // { valid, issues }
-  parseAsync(input: unknown): Promise<T>                 // Async parse
-  safeParseAsync(input: unknown): Promise<AsyncSafeParseResult<T>>
-  isValidAsync(input: unknown): Promise<AsyncValidationResult>
-  hasAsyncValidation(): boolean
-  refine(validator, message?): this                     // Custom refinement
-  toJsonSchema(): JsonSchema                             // Convert to standard JSON Schema
-  readonly kataxInfer: T                                 // Type inference helper
-}
+k.string().optional().safeParse(null);       // ❌ "Expected string, received null"
+k.string().nullish().safeParse(null);        // ✅ null
+k.string().nullable().safeParse(undefined);  // ❌ the key is required
+k.number().optional().safeParse('2');        // ❌ query strings need k.coerce.number()
+k.coerce.number().optional().safeParse('2'); // ✅ 2
 ```
 
-## Result Types
+`.nullable().optional()` ≡ `.nullish()`. Prefer `.nullish()`. (On katax-core ≤ 1.6.5, `.nullish()` was wrongly listed in `toJsonSchema().required` and lacked the `null` type — upgrade to 1.6.6 rather than working around it.)
 
-- `SafeParseResult<T>`: `{ success: true; data: T } | { success: false; issues: Issue[] }`
-- `ValidationResult`: `{ valid: boolean; issues: Issue[] }`
-- `AsyncSafeParseResult<T>`: Same as SafeParseResult but for async
-- `AsyncValidationResult`: Same as ValidationResult but for async
-- `Issue`: `{ path: (string | number)[]; message: string }`
-- `KataxError`: Custom error class with `issues: Issue[]` property
+## API reference
 
-## The k() API — All Factory Functions
+Every schema implements `parse`, `safeParse`, `validate`, `parseAsync`, `safeParseAsync`, `isValidAsync`, `hasAsyncValidation`, `optional`, `nullable`, `nullish`, `default`, `catch`, `transform`, `refine`, `asyncRefine`, `brand`, `describe`, `toJsonSchema`. All builders return new instances (immutable chaining).
+
+### Factories
 
 ```ts
-const k = {
-  // Primitives
-  string, number, boolean, bigint, date, twoDates,
-  nan, null, undefined, void,
-  // Composites
-  object, array, tuple, record,
-  // Composition
-  union, intersection, lazy, discriminatedUnion,
-  // Special
-  promise, set, map,
-  email, file, base64,
-  // Custom/Advanced
-  custom, literal, enum, any, unknown, never,
-  // Transformation
-  coerce, preprocess
-};
+k.string()   k.number()   k.boolean()   k.bigint()   k.date()   k.twoDates(separator = '|')
+k.object(shape)   k.array(item)   k.tuple([a, b])   k.record(value)   k.set(item)   k.map(key, value)
+k.union([...])   k.intersection([...])   k.discriminatedUnion(key, { value: schema })   k.lazy(fn, name?)
+k.email()   k.file()   k.base64()   k.promise(schema?)
+k.literal(v)   k.enum(['a', 'b'] as const)   k.custom<T>(fn)   k.any()   k.unknown()   k.never()
+k.nan()   k.null()   k.undefined()   k.void()
+k.coerce.number() / .boolean() / .string() / .date()
+k.preprocess(fn, schema)
 ```
 
-## String Schema — `k.string()`
+### String
 
-| Method                      | Description                    |
-| --------------------------- | ------------------------------ |
-| `minLength(n, msg?)`        | Minimum character length       |
-| `maxLength(n, msg?)`        | Maximum character length       |
-| `length(n, msg?)`           | Exact character length         |
-| `email(msg?)`               | Valid email format             |
-| `url(msg?)`                 | Valid URL (URL constructor)    |
-| `regex(pattern, msg?)`      | Match regex pattern            |
-| `uuid(msg?)`                | Valid UUID (RFC 4122)          |
-| `ip(msg?)`                  | Valid IPv4 address             |
-| `datetime(msg?)`            | Valid ISO 8601 datetime        |
-| `jwt(msg?)`                 | Valid JWT structure            |
-| `cuid2(msg?)`               | Valid CUID2                    |
-| `ulid(msg?)`                | Valid ULID                     |
-| `emoji(msg?)`               | Valid emoji sequence           |
-| `cidr(msg?)`                | Valid CIDR notation            |
-| `startsWith(prefix, msg?)`  | Must start with string         |
-| `endsWith(suffix, msg?)`    | Must end with string           |
-| `includes(substr, msg?)`    | Must include substring         |
-| `oneOf(options[], msg?)`    | Must be one of options         |
-| `notOneOf(options[], msg?)` | Must not be one of options     |
-| `lowercase(msg?)`           | Must be lowercase              |
-| `uppercase(msg?)`           | Must be uppercase              |
-| `alpha(msg?)`               | Only letters [A-Za-z]          |
-| `alphanumeric(msg?)`        | Only letters and numbers       |
-| `ascii(msg?)`               | Only ASCII characters          |
-| `noWhitespace(msg?)`        | No whitespace allowed          |
-| `nonempty(msg?)`            | Cannot be empty                |
-| `trim(msg?)`                | No leading/trailing whitespace |
+`minLength(n)` `maxLength(n)` `length(n)` `nonempty()`/`notEmpty()` `email()` `url()` `uuid()` `ip()` (IPv4) `datetime()` `jwt()` `cuid2()` `ulid()` `emoji()` `cidr()` `regex(re)` `startsWith(s)` `endsWith(s)` `includes(s)` `oneOf([...])` `notOneOf([...])` `lowercase()` `uppercase()` `alpha()` `alphanumeric()` `ascii()` `noWhitespace()` `trim()` (checks there's no surrounding whitespace; it does not trim). Every rule takes an optional message except `trim()`.
 
-## Number Schema — `k.number()`
+There is **no** `k.string().min()`: use `minLength`.
 
-| Method                      | Description                |
-| --------------------------- | --------------------------- |
-| `min(value, msg?)`          | Minimum value (>=)         |
-| `max(value, msg?)`          | Maximum value (<=)         |
-| `equals(exact, msg?)`       | Exact value                |
-| `positive(msg?)`            | Must be > 0                |
-| `negative(msg?)`            | Must be < 0                |
-| `nonnegative(msg?)`         | Must be >= 0               |
-| `nonpositive(msg?)`         | Must be <= 0               |
-| `integer(msg?)`             | Must be integer            |
-| `finite(msg?)`              | Must be finite             |
-| `multipleOf(factor, msg?)`  | Must be multiple of        |
-| `between(min, max, msg?)`   | Between range (inclusive)  |
-| `greaterThan(n, msg?)`      | Strictly > n               |
-| `lessThan(n, msg?)`         | Strictly < n               |
-| `notEqual(n, msg?)`         | Not equal to value         |
-| `oneOf(options[], msg?)`    | Must be one of options     |
-| `notOneOf(options[], msg?)` | Must not be one of options |
+### Number / BigInt
 
-## Boolean Schema — `k.boolean()`
+`min` `max` `between(min, max)` `greaterThan` `lessThan` `positive` `negative` `nonnegative` `nonpositive` `integer` `finite` `multipleOf` `equals` `notEqual` `oneOf` `notOneOf`. BigInt has the same set except `integer`/`finite`, and validates native `bigint` only (no coercion).
 
-| Method                   | Description      |
-| ------------------------ | ---------------- |
-| `isTrue(msg?)`           | Must be true     |
-| `isFalse(msg?)`          | Must be false    |
-| `equals(expected, msg?)` | Must equal value |
+### Object
 
-## BigInt Schema - `k.bigint()`
+`extend(shape)` `merge(other)` `pick(['a'])` `omit(['a'])` `partial()` `strict()` (reject unknown keys) `passthrough()` (keep them) `strip()` (default: drop them) `caseInsensitive()` `getShape()`.
 
-Validates native JavaScript bigint values.
+### Array / Set / Map
 
-| Method                       | Description                  |
-| ---------------------------- | ---------------------------- |
-| `min(value, msg?)`           | Minimum value (>=)           |
-| `max(value, msg?)`           | Maximum value (<=)           |
-| `positive(msg?)`             | Must be > 0n                 |
-| `negative(msg?)`             | Must be < 0n                 |
-| `nonnegative(msg?)`          | Must be >= 0n                |
-| `nonpositive(msg?)`          | Must be <= 0n                |
-| `between(min, max, msg?)`    | Between range (inclusive)    |
-| `multipleOf(factor, msg?)`   | Must be multiple of          |
-| `equals(exact, msg?)`        | Exact value                  |
-| `oneOf(options[], msg?)`     | Must be one of options       |
-| `notOneOf(options[], msg?)`  | Must not be one of options   |
+Array: `minLength`/`min` `maxLength`/`max` `length` `notEmpty`/`nonempty` `unique` `contains(value)`. Set/Map: `minSize` `maxSize` `nonempty`. Always pass the element schema (`k.array()` without one accepts anything).
 
-## Object Schema — `k.object(shape)`
+### Date
+
+Accepts a `Date` or ISO string (`'2024-01-15'`, `'2024-01-15T10:30:00Z'`), outputs a `Date`. `min(str)` `max(str)` `between(a, b)` `isFuture` `isPast` `format('yyyy-MM-dd')` `isDateOnly` `hasTime` `formatOutput(fmt)` (output becomes a string).
+
+For calendar dates stored in `date` columns, prefer a `YYYY-MM-DD` string schema (like `dateSchema` above) over `k.date()`: a `Date` object carries a timezone and can shift the day.
+
+### Email / File / Base64
+
+- `k.email()`: `domain` `domains` `domainPattern` `notDomains` `localMinLength` `localMaxLength` `localPattern` `corporate` `noPlus` `noDots`. Use it instead of `k.string().email()` when you need domain rules.
+- `k.file()` (browser `File` / multer): `maxSize` `minSize` `type` `types` `typePattern('image/*')` `extension` `extensions` `namePattern` `image` `video` `audio` `document`.
+- `k.base64()`: `minDecodedSize` `maxDecodedSize` `mimeType` `mimeTypePattern` `image` `pdf` `json` `dataUrl`.
+
+### Composition
 
 ```ts
-const schema = k.object({
-  name: k.string(),
-  age: k.number().optional(),
-});
-```
-
-| Method              | Description                    |
-| ------------------- | ------------------------------ |
-| `extend(extension)` | Add/override fields            |
-| `merge(other)`      | Merge two object schemas       |
-| `pick([keys])`      | Select specific fields         |
-| `omit([keys])`      | Remove specific fields         |
-| `partial()`         | Make all fields optional       |
-| `strict()`          | No extra keys allowed (throws) |
-| `passthrough()`     | Allow extra keys in output     |
-| `strip()`           | Remove extra keys (default)    |
-| `getShape()`        | Get raw shape object           |
-| `caseInsensitive()` | Case-insensitive field lookup  |
-
-## Array Schema — `k.array(elementSchema?)`
-
-| Method                    | Description                          |
-| ------------------------- | ------------------------------------- |
-| `minLength(n, msg?)`      | Minimum array length                 |
-| `maxLength(n, msg?)`      | Maximum array length                 |
-| `min(n, msg?)`            | Alias for minLength                  |
-| `max(n, msg?)`            | Alias for maxLength                  |
-| `length(n, msg?)`         | Exact array length                   |
-| `notEmpty(msg?)`          | Cannot be empty array                |
-| `unique(msg?)`            | All elements unique (deep equality)  |
-| `contains(element, msg?)` | Must contain element (deep equality) |
-
-## Email Schema — `k.email()`
-
-| Method                          | Description                          |
-| -------------------------------- | ------------------------------------ |
-| `domain(domain, msg?)`          | Restrict to specific domain          |
-| `domains([domains], msg?)`      | Restrict to multiple domains         |
-| `domainPattern(pattern, msg?)`  | Domain regex (`*.domain.com`)        |
-| `notDomains([blacklist], msg?)` | Blacklist domains                    |
-| `localMinLength(n, msg?)`       | Min length for local part            |
-| `localMaxLength(n, msg?)`       | Max length for local part            |
-| `localPattern(regex, msg?)`     | Pattern for local part               |
-| `corporate(msg?)`               | Block free providers (Gmail, Yahoo…) |
-| `noPlus(msg?)`                  | Disallow '+' addressing              |
-| `noDots(msg?)`                  | Disallow '.' in local part           |
-
-## Date Schema — `k.date()`
-
-Input: ISO 8601 date strings. Output: Date object. Uses `date-fns`.
-
-| Method                      | Description                          |
-| --------------------------- | ------------------------------------ |
-| `min(dateStr, msg?)`        | On or after date                     |
-| `max(dateStr, msg?)`        | On or before date                    |
-| `between(start, end, msg?)` | Between range (inclusive)            |
-| `isFuture(msg?)`            | Must be in the future                |
-| `isPast(msg?)`              | Must be in the past                  |
-| `format(formatStr, msg?)`   | Must match specific format           |
-| `isDateOnly(msg?)`          | Date only (YYYY-MM-DD)               |
-| `hasTime(msg?)`             | Must include time component          |
-| `formatOutput(format)`      | Transform output to formatted string |
-
-## TwoDates Schema — `k.twoDates(separator?)`
-
-Input: Two ISO dates separated by `separator` (default `'|'`). Output: `[Date, Date]`.
-
-| Method                            | Description                     |
-| ---------------------------------- | ------------------------------- |
-| `maxDifference(days, msg?)`       | Max days apart                  |
-| `minDifference(days, msg?)`       | Min days apart                  |
-| `maxDifferenceHours(hours, msg?)` | Max hours apart                 |
-| `minDifferenceHours(hours, msg?)` | Min hours apart                 |
-| `order(ascending, msg?)`          | Chronological order enforcement |
-
-## File Schema — `k.file()`
-
-Works with Browser File API and Node.js Multer objects.
-
-| Method                       | Description                           |
-| ----------------------------- | -------------------------------------- |
-| `maxSize(bytes, msg?)`       | Maximum file size                     |
-| `minSize(bytes, msg?)`       | Minimum file size                     |
-| `type(mimeType, msg?)`       | Exact MIME type                       |
-| `types([mimeTypes], msg?)`   | Multiple MIME options                 |
-| `typePattern(pattern, msg?)` | MIME pattern (`image/*`)              |
-| `extension(ext, msg?)`       | File extension (.jpg)                 |
-| `extensions([exts], msg?)`   | Multiple extensions                   |
-| `namePattern(regex, msg?)`   | Filename regex                        |
-| `image(msg?)`                | Shortcut: `image/*`                   |
-| `video(msg?)`                | Shortcut: `video/*`                   |
-| `audio(msg?)`                | Shortcut: `audio/*`                   |
-| `document(msg?)`             | Shortcut: PDF, Word, Excel, plaintext |
-
-## Base64 Schema — `k.base64()`
-
-Input: Base64 string (optionally with data URL prefix). Browser + Node.js compatible.
-
-| Method                           | Description                   |
-| ---------------------------------- | ------------------------------ |
-| `minDecodedSize(bytes, msg?)`    | Min decoded content size      |
-| `maxDecodedSize(bytes, msg?)`    | Max decoded content size      |
-| `mimeType(type, msg?)`           | Exact MIME from data URL      |
-| `mimeTypePattern(pattern, msg?)` | MIME type pattern             |
-| `dataUrl(msg?)`                  | Must be data URL (`data:...`) |
-| `json(msg?)`                     | Decoded must be valid JSON    |
-| `image(msg?)`                    | Shortcut: `image/*`           |
-| `pdf(msg?)`                      | Shortcut: `application/pdf`   |
-
-## Union, Intersection, Lazy
-
-```ts
-// Union — matches at least one schema (short-circuits on first match)
-k.union([k.string(), k.number()]);
-
-// Intersection — must match ALL schemas (merges objects)
+k.union([k.string(), k.number()]);                       // first match wins
 k.intersection([k.object({ id: k.number() }), k.object({ name: k.string() })]);
-
-// Lazy — deferred resolution for recursive types
-const categorySchema = k.lazy(() =>
-  k.object({
-    name: k.string(),
-    subcategories: k.array(categorySchema),
-  })
-);
+k.discriminatedUnion('type', {                           // map keys = discriminator values
+  cat: k.object({ type: k.literal('cat'), meow: k.boolean() }),
+  dog: k.object({ type: k.literal('dog'), bark: k.boolean() }),
+});
+const category: any = k.lazy(() => k.object({ name: k.string(), children: k.array(category) }), 'Category');
 ```
 
-## Literal, Enum, Tuple, Record
+### Coercion & preprocess
 
 ```ts
-k.literal('active'); // Exact value (===)
-k.enum(['active', 'inactive']); // String literal union
-k.tuple([k.number(), k.string()]); // Fixed-length typed array
-k.record(k.number()); // Record<string, number>
-k.any(); // Accepts all (bypasses safety)
-k.unknown(); // Accepts all (forces narrowing)
-k.never(); // Never matches
+k.coerce.number();   // "42" → 42, true → 1; null/undefined → issue
+k.coerce.boolean();  // "true"/"1"/"yes" → true, "false"/"0"/"no" → false; null → false
+k.coerce.string();   // 42 → "42", null → ""
+k.coerce.date();     // ISO string or timestamp → Date
+k.preprocess((v) => (typeof v === 'string' ? v.trim().toLowerCase() : v), k.string().email());
 ```
 
-## Custom Schema — `k.custom<T>(validator)`
+Coerced schemas have every method of their target type.
+
+## Async validation
 
 ```ts
-const positiveEven = k.custom<number>((value, path) => {
-  if (typeof value !== 'number') return [{ path, message: 'Must be number' }];
-  if (value <= 0 || value % 2 !== 0) return [{ path, message: 'Must be positive even' }];
-  return value;
+const emailSchema = k.email().asyncRefine(async (value, path) => {
+  const taken = await usersRepository.existsByEmail(value);   // repository call, never inline SQL
+  return taken ? [{ path, message: 'Email already registered' }] : [];
 });
 
-// Add refinements
-positiveEven.refine((v) => v < 1000, 'Must be less than 1000');
+await emailSchema.safeParseAsync(input);
 ```
 
-## Universal Modifiers (all schemas)
+- `parse()`/`safeParse()` on a schema with async validation (own or nested) **throws `KataxAsyncValidationRequiredError`** — they don't silently skip it.
+- `validateSchema(schema, data)` (exported by katax-core) picks sync or async automatically; the generated `shared/api.utils.ts` wraps it.
+- A DB check inside a validator is still a repository call. If it can fail (DB down), catch and return an issue rather than throwing.
+
+## Errors
+
+- `safeParse` → `{ success: true, data } | { success: false, issues: { path, message }[] }`.
+- `parse` throws `KataxError` (`issues`, `message` = `path: message; ...`).
+- Messages include the received type: `"Expected string, received number"`.
+- Helpers: `createIssue(path, msg)`, `issues(path, msg)`, `mergeIssues(...)`, `isIssueArray(v)`, `describeReceived(v)`.
+- Errors thrown inside your own `.transform()`/`.refine()` callbacks propagate (they're bugs); they're not turned into issues.
+
+## Types
 
 ```ts
-schema.optional()            // T | undefined
-schema.nullable()            // T | null
-schema.nullish()             // T | null | undefined
-schema.default(42)           // Returns default if undefined
-schema.catch(42)             // Fallback on parse failure
-schema.transform((v) => ...) // Transform output type
-schema.brand("Name")         // Nominal typing (T & { __brand: Name })
-schema.refine(validator, msg?) // Custom refinement
-schema.describe(text)        // Sets JSON Schema description (see toJsonSchema())
+type User = kataxInfer<typeof userSchema>;
+// optional keys are inferred as `key: T | undefined` (the key itself is not `?`)
 ```
 
-## Coercion — `k.coerce`
+Export inferred types from the validator and import them with `import type` in controllers. Response/view types are **not** inferred from validators: they live in `<resource>.types.ts`.
 
-Auto-converts before validation:
+## JSON Schema — `toJsonSchema()`
+
+Draft 2020-12 output, for **OpenAPI 3.1** and MCP tool `inputSchema`s (OpenAPI 3.0 can't represent `type: [..., "null"]`, `const`, `prefixItems`).
 
 ```ts
-k.coerce.number(); // "42" → 42, true → 1
-k.coerce.boolean(); // "true"/"1"/"yes"/"on" → true, "false"/"0"/"no"/"off" → false
-k.coerce.string(); // 42 → "42", null → ""
-k.coerce.date(); // ISO string → Date, timestamp → Date
+createHabitSchema.toJsonSchema();
+// { type: 'object', properties: { name: { type: 'string', minLength: 1, maxLength: 120, description: 'Habit name.' }, ... }, required: ['name'] }
 ```
 
-All coerced schemas inherit their base schema methods.
+Mappings worth knowing (1.6.6+): `.integer()` → `type: "integer"`; `.nullable()` → `type: [T, "null"]` (or `anyOf` for enum/literal/union); `.optional()`/`.nullish()`/`.default()` → key not in `required`; `.strict()` → `additionalProperties: false`; union → `anyOf`; discriminated union → `oneOf` with the key pinned; recursive `k.lazy(fn, 'Name')` → `$anchor` + `$ref: "#Name"`. Runtime-only rules (`refine`, `asyncRefine`, `custom`, transforms, date comparisons, email domain rules, file/base64 checks) are not representable.
 
-## Preprocess — `k.preprocess(fn, schema)`
+Never hand-write a second JSON Schema next to a validator — generate it (see `katax-mcp-server` → `inputSchema()`).
 
-Transform input BEFORE validation:
+## Gotchas
 
-```ts
-k.preprocess(
-  (val) => (typeof val === 'string' ? val.trim().toLowerCase() : val),
-  k.string().email()
-);
-```
-
-## Error Utilities
-
-```ts
-import { createIssue, issues, mergeIssues, isIssueArray, describeReceived } from 'katax-core';
-
-createIssue(['field'], 'error message');  // Single issue
-issues(['field'], 'error message');       // Issue[]
-mergeIssues(arr1, arr2);                  // Merge issue arrays
-isIssueArray(value);                      // Type guard
-describeReceived(value);                  // 'null' | 'undefined' | 'array' | typeof value
-```
-
-Error messages now include the received type:
-```
-"Expected string, received number"
-"Expected object, received null"
-"Expected an array, received string"
-```
-
-## Async Validation
-
-```ts
-const usernameSchema = k
-  .string()
-  .minLength(3)
-  .asyncRefine(async (value) => {
-    const exists = await usersRepo.existsByUsername(value);
-    return exists ? [{ path: ['username'], message: 'Already taken' }] : [];
-  });
-
-const result = await usernameSchema.safeParseAsync(input);
-```
-
-## Express Validation Pattern
-
-```ts
-function validate<T>(schema: { safeParse(v: unknown): any }) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const result = schema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json({ errors: result.issues });
-    }
-    req.body = result.data;
-    next();
-  };
-}
-```
-
-## API Example — Email + File + Base64
-
-```ts
-const profileSchema = k
-  .object({
-    email: k.email().corporate().noPlus(),
-    avatar: k
-      .file()
-      .image()
-      .maxSize(5 * 1024 * 1024),
-    resume: k
-      .base64()
-      .pdf()
-      .maxDecodedSize(10 * 1024 * 1024),
-    birthdate: k.date().isPast().isDateOnly(),
-  })
-  .strict();
-```
-
-## JSON Schema Conversion — `schema.toJsonSchema()`
-
-Every schema (all ~22 `BaseSchema` implementations — primitives, `object`, `array`, `union`, `intersection`, `discriminatedUnion`, `lazy`, and wrapper schemas like `optional`/`nullable`/`default`/`catch`/`branded`) implements `toJsonSchema(): JsonSchema`, converting the validator into a standard JSON Schema object. No arguments:
-
-```ts
-const CreateUserSchema = k.object({
-  email: k.email().describe('User email address'),
-  name: k.string().minLength(2).maxLength(100),
-});
-
-const jsonSchema = CreateUserSchema.toJsonSchema();
-// { type: 'object', properties: { email: {...}, name: {...} }, required: [...] }
-```
-
-`.describe(text)` sets the JSON Schema's `description` field. Wrapper modifiers (`optional()`, `nullable()`, `default()`, `catch()`, `brand()`) merge their own JSON Schema fragment on top of the inner schema's output, so `toJsonSchema()` reflects the full modifier chain.
-
-Direct use case in this ecosystem: bridging a katax-core validator into MCP tool `inputSchema` definitions without hand-writing a second, parallel schema — see the `katax-mcp-server` skill for the concrete `toPublicInputSchema()` pattern built on top of this.
-
-## Validation Gotchas
-
-- Always validate `req.body` with `.safeParse()`
-- Use `coerce` for query params (strings → numbers/booleans)
-- Use `asyncRefine` for database checks (unique username, etc.)
-- Use `nullish()` when a field accepts both `null` and `undefined`
-- Prefer `minLength`/`maxLength` for strings
-- Use `k.discriminatedUnion()` over `k.union()` for tagged object types (faster O(1) dispatch)
-- `.brand()` provides nominal typing at compile time; runtime `__brand` only set on objects
-- `k.nan()` only matches `NaN` (use `k.void()` to accept both null and undefined)
-- `k.promise()` without a wrapped schema just checks `instanceof Promise`
-- `k.bigint()` validates native `bigint` values — does NOT coerce from strings/numbers
-- `parse()` throws `KataxError` on failure — use `safeParse()` for graceful handling
-- Object schema default is `strip()` (removes unknown keys) — use `.strict()` to throw or `.passthrough()` to keep them
-- Async schemas need `safeParseAsync()` — calling `safeParse()` on them silently skips async refinements
-- `k.array()` without element schema creates an untyped array — always specify element type
+- `.optional()` does not accept `null`; use `.nullish()` (see table).
+- Query params are strings: `k.number()` on `req.query.page` always fails — use `k.coerce.number()`.
+- Objects strip unknown keys by default (`.strict()` to reject, `.passthrough()` to keep).
+- `.default()` applies only to `undefined`; `.catch()` replaces any failure (including wrong types).
+- `k.enum()` takes string values only; use `k.literal()`/`k.union()` for numbers.
+- `discriminatedUnion` takes a map `{ value: schema }`, not an array.
+- `k.string().trim()` validates, it doesn't transform; use `k.preprocess` or `.transform` to trim.

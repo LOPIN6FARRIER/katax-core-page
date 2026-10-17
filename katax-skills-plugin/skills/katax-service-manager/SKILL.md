@@ -8,9 +8,11 @@ argument-hint: 'What part of katax-service-manager? (bootstrap/database/logger/w
 
 Singleton service container for Node.js apps: config, logger, database pools, WebSocket, cron, cache, registry, health, graceful shutdown. Part of the [Katax ecosystem](https://github.com/LOPIN6FARRIER/katax-service-manager) alongside `katax-core` (validation) and `katax-cli` (scaffolding).
 
-**Version: 0.5.9** | ESM-only | Node >= 18 | `npm install katax-service-manager`
+**Version: 0.6.1** | ESM-only | Node >= 18 | `npm install katax-service-manager`
 
-All DB/WS/cron/pino-pretty/dotenv dependencies are **optional peer dependencies**, dynamically imported — the package works with none installed until a feature needing them is used.
+All DB/WS/cron/pino-pretty/dotenv dependencies are **optional peer dependencies**, loaded with dynamic `import()` on first use — `import { katax } from 'katax-service-manager'` works with none installed (also under pnpm's strict `node_modules`).
+
+House style for how repositories/controllers use the database: `katax-ecosystem` skill → `references/api-architecture.md` (`shared/db.ts` with `db()` + `withTransaction()`).
 
 ## Quick Start
 
@@ -25,13 +27,12 @@ const db = await katax.database({
   connection: { host: 'localhost', user: 'admin', password: 'secret', database: 'myapp' },
 });
 
-const users = await db.query('SELECT * FROM users WHERE active = $1', [true]);
-katax.logger.info({ message: 'App started', users: users.length });
+// typed by `type`: ISqlDatabase for postgresql/mysql
+const rows = await db.query<Array<{ id: string }>>('SELECT id FROM users WHERE active = $1', [true]);
+katax.logger.info({ message: 'App started', users: rows.length });
 
-process.on('SIGTERM', async () => {
-  await katax.shutdown();
-  process.exit(0);
-});
+// No process.on('SIGTERM') needed: init() registers SIGTERM/SIGINT → katax.shutdown() → exit.
+katax.onShutdown(async () => { /* close your own resources */ });
 ```
 
 ## Public Surface Summary
@@ -39,7 +40,8 @@ process.on('SIGTERM', async () => {
 | Category   | Exports |
 | ---------- | ------- |
 | Core       | `Katax`, `katax` |
-| Services   | `ConfigService`, `LoggerService`, `DatabaseService`, `WebSocketService`, `CronService`, `CacheService`, `RegistryService`, `RedisStreamBridgeService` |
+| Services   | `ConfigService`, `LoggerService`, `DatabaseService`, `CacheService`, `RegistryService`, `RedisStreamBridgeService` (WebSocket/Cron classes are not exported — use `katax.socket()` / `katax.cron()`, so `socket.io`/`node-cron` stay optional) |
+| Types      | `ISqlDatabase`, `IMongoDatabase`, `IRedisDatabase`, `IDatabaseService`, `LogConfig`, `LogEntry`, `LogTransport`, `DatabaseConfig`, `WebSocketConfig`, `CronJobConfig`, ... |
 | Errors     | `KataxServiceError`, `KataxConfigError`, `KataxNotInitializedError`, `KataxDatabaseError`, `KataxRedisError`, `KataxWebSocketError`, `KataxRegistryError` |
 | Transports | `RedisTransport`, `CallbackTransport`, `TelegramTransport` |
 | Helpers    | `registerVersionToRedis`, `startHeartbeat`, `registerProjectInRedis` |
@@ -49,7 +51,7 @@ process.on('SIGTERM', async () => {
 ```ts
 import { Katax, katax } from 'katax-service-manager';
 
-katax.init();                 // pre-exported singleton (recommended)
+await katax.init();           // pre-exported singleton (recommended)
 Katax.getInstance();          // explicit singleton (same instance)
 const instance = new Katax(); // isolated instance (testing / multi-tenant)
 await instance.init();
@@ -95,9 +97,9 @@ dotenv.config();
 
 ### Internals (init flow)
 
-`katax.init()` guards against concurrent calls — a second call while one is in flight returns the same in-flight `_initPromise` instead of re-running bootstrap. Core service creation (config, logger, cron) is delegated to `BootstrapService.initialize()` (`src/services/bootstrap.service.ts`) rather than done inline in `Katax`. SIGTERM/SIGINT handlers are registered exactly once (`registerProcessHandlers`/`removeProcessHandlers`) — this pairing matters for tests calling `Katax.reset()` repeatedly, otherwise listeners leak and trigger `MaxListenersExceededWarning`. Registry registration failure is non-fatal (logged as warning, `hooks.onError` called).
+`katax.init()` guards against concurrent calls — a second call while one is in flight returns the same in-flight `_initPromise` instead of re-running bootstrap. Core service creation (config, logger, app name) is delegated to `BootstrapService.initialize()` (`src/services/bootstrap.service.ts`) rather than done inline in `Katax`; the cron service is not created at init but on the first `katax.cron()`. `loadEnv: true` without `dotenv` installed throws `KataxConfigError`. SIGTERM/SIGINT handlers are registered exactly once (`registerProcessHandlers`/`removeProcessHandlers`) — this pairing matters for tests calling `Katax.reset()` repeatedly, otherwise listeners leak and trigger `MaxListenersExceededWarning`. Registry registration failure is non-fatal (logged as warning, `hooks.onError` called).
 
-`database()`, `socket()`, `cron()`, `cache()`, `bridge()`, `heartbeat()` are all lazy and keyed by name: an existing name returns the cached instance; a name with creation in-flight returns the same pending promise rather than racing a second connection.
+`database()` and `socket()` are keyed by name: an existing name returns the cached instance, and a name whose creation is in flight returns the same pending promise (`_pendingDatabases` / `_pendingSockets`) rather than racing a second connection. `cache(name)` and `bridge(...)` are synchronous and cached per Redis name / per redis+socket+streamKey+appName. `heartbeat()` is not cached: every call starts a new one (all are stopped on shutdown).
 
 ## Environment Helpers
 
@@ -111,7 +113,7 @@ katax.isDev;     // NODE_ENV === 'development' or unset
 katax.isProd;    // NODE_ENV === 'production'
 katax.isTest;    // NODE_ENV === 'test'
 katax.nodeEnv;   // raw NODE_ENV or 'development'
-katax.appName;   // from package.json
+katax.appName;   // init({ appName }) → KATAX_APP_NAME → npm_package_name → package.json name
 katax.version;   // from package.json
 ```
 
@@ -119,7 +121,7 @@ katax.version;   // from package.json
 
 ```ts
 const port = katax.config.get('PORT', 3000);
-const all = katax.config.getAll();   // ⚠️ real method on ConfigService, NOT on public IConfigService type
+const all = (katax.config as ConfigService).getAll(); // getAll() is on the ConfigService class, not on IConfigService
 const exists = katax.config.has('API_KEY');
 katax.config.set('custom', value);
 ```
@@ -132,7 +134,7 @@ await katax.shutdown(); // closes DBs, sockets, bridges, heartbeats, stops cron,
 // SIGTERM/SIGINT handled automatically after init()
 ```
 
-Shutdown order (`LifecycleService.shutdown`, `src/services/lifecycle.service.ts`): user `onShutdown` hooks run first → `hooks.beforeShutdown` → databases closed (`Promise.allSettled`, one failure doesn't block others) → sockets closed (same pattern) → cron stopped → registry unregistered → logger transports closed → `hooks.afterShutdown`. Errors are collected, not thrown — shutdown always completes even with partial failures.
+Shutdown order (`Katax.shutdown` in `src/katax.ts` + `LifecycleService.shutdown`): user `onShutdown` hooks first (run in parallel, failures logged) → `hooks.beforeShutdown` → databases closed (`Promise.allSettled`, one failure doesn't block others) → sockets closed (same pattern) → cron stopped → registry unregistered → logger transports closed → `hooks.afterShutdown` → Redis stream bridges and heartbeats stopped → process signal handlers removed. `shutdown()` before `init()` is a no-op. Errors are collected, not thrown — shutdown always completes even with partial failures.
 
 ```ts
 interface KataxLifecycleHooks {
@@ -149,7 +151,7 @@ interface KataxLifecycleHooks {
 ```ts
 import { Katax } from 'katax-service-manager';
 
-beforeEach(() => Katax.reset()); // awaits shutdown(), clears maps, removes process listeners
+beforeEach(async () => { await Katax.reset(); }); // awaits shutdown(), clears maps, removes process listeners
 
 katax.overrideService('db:main', mockDb);
 katax.overrideService('logger', mockLogger);
@@ -179,8 +181,8 @@ interface DatabaseConfig {
 // PostgreSQL / MySQL
 { host, port?, database, user, password, ssl?: boolean | object } // pg default 5432, mysql default 3306
 
-// MongoDB
-{ uri: string } | { host, port?: 27017, database, user?, password? }
+// MongoDB (or pass a connection string as `connection`)
+{ host, port?: 27017, database, user?, password?, authSource? }
 
 // Redis
 { host, port?: 6379, password?, db?: number, tls?: boolean }
@@ -189,14 +191,27 @@ interface DatabaseConfig {
 ```ts
 const db = await katax.database({ name: 'main', type: 'postgresql', connection: {...}, pool: { max: 10, min: 2 } });
 const optionalDb = await katax.database({ name: 'analytics', type: 'postgresql', required: false, connection: {...} });
-
-const db2 = katax.db('main'); // quick lookup, throws KataxDatabaseError if not found
-db2.asSql();    // → ISqlDatabase, throws if not postgresql/mysql
-db2.asMongo();  // → IMongoDatabase, throws if not mongodb
-db2.asRedis();  // → IRedisDatabase, throws if not redis
 ```
 
-Same name returns same instance (`db1 === db2`). `db.query()` only for SQL. Redis reconnect is built-in for katax-managed connections; only customize `reconnectStrategy` for external custom clients.
+`katax.database()` is overloaded by `type`: `ISqlDatabase` (postgresql/mysql, has `query<T>()`), `IMongoDatabase` (`getClient()` → MongoClient), `IRedisDatabase` (`redis(...args)`); with `required: false` the result is `... | null`.
+
+`katax.db(name)` returns the generic `IDatabaseService` (its `query`/`redis` are optional, so `katax.db('main').query(...)` doesn't compile under `strict`). Narrow it **once**, in a shared helper, and make every repository use the helper:
+
+```ts
+// src/shared/db.ts
+import { katax } from 'katax-service-manager';
+import type { ISqlDatabase } from 'katax-service-manager';
+
+export function db(): ISqlDatabase {
+  return katax.db('main') as unknown as ISqlDatabase;  // 'main' is always postgresql (see index.ts)
+}
+
+// runtime-checked alternative: (katax.db('main') as DatabaseService).asSql() / .asMongo() / .asRedis()
+```
+
+Transactions: there's no transaction API. Use a dedicated client: `const client = (await db().getClient()) as PoolClient` → `BEGIN` / `COMMIT` / `ROLLBACK` / `client.release()` (full `withTransaction()` in the architecture reference). Never send `BEGIN` through `db().query()` — consecutive calls may run on different pooled connections.
+
+Same name returns same instance (`db1 === db2`). Redis clients are created with `RESP: 2` (array-shaped replies, also on Redis 6+/Valkey); reconnect is built-in for katax-managed connections.
 
 ## Cache Service
 
@@ -216,8 +231,8 @@ const cache = katax.cache('cache'); // arg = redis db name, default 'cache'
 | `ttl(key)` | Remaining TTL (-1 no expiry, -2 missing) |
 | `expire(key, seconds)` | Set expiration |
 | `incr(key)` / `incrBy(key, n)` / `decr(key)` | Counters |
-| `mget<T>(keys[])` / `mset(entries[])` | Batch get/set |
-| `clear(pattern?)` | Delete by pattern (disabled for `'*'` in production) |
+| `mget<T>(keys[])` / `mset([[key, value], ...])` | Batch get/set (`mset` has no TTL) |
+| `clear(pattern = '*')` | Delete by pattern; `clear()` / `clear('*')` throws when `NODE_ENV=production` |
 | `stats()` | Redis INFO stats |
 
 ## Logger Service
@@ -263,7 +278,8 @@ log.info({ message: 'Payment processed' }); // includes bindings
 ```ts
 import { RedisTransport, TelegramTransport, CallbackTransport } from 'katax-service-manager';
 
-const redis = new RedisTransport(katax.db('cache'), { streamKey: 'katax:logs', maxLen: 10000 });
+const redisDb = katax.db('redis') as unknown as IRedisDatabase;   // RedisTransport needs IRedisDatabase
+const redis = new RedisTransport(redisDb, { streamKey: 'katax:logs', maxLen: 10000 });
 redis.filter = (log) => log.level === 'error' || log.persist === true;
 katax.logger.addTransport(redis);
 
@@ -274,12 +290,12 @@ const telegram = new TelegramTransport({
 });
 katax.logger.addTransport(telegram);
 
-const callback = new CallbackTransport({ name: 'custom', send: async (log) => { /* ... */ }, filter: (log) => log.level === 'error' });
+const callback = new CallbackTransport(async (log) => { await myApi.send(log); }, 'custom'); // (fn, name?)
 katax.logger.addTransport(callback);
 
 katax.logger.removeTransport('telegram-errors');
 await katax.logger.closeTransports();
-katax.logger.getPinoLogger(); // ⚠️ real method on LoggerService, NOT on public ILoggerService type — escape hatch to raw Pino
+(katax.logger as LoggerService).getPinoLogger(); // on the LoggerService class, not on ILoggerService — escape hatch to raw Pino
 ```
 
 ```ts
@@ -323,7 +339,7 @@ const ws = katax.ws('main'); // quick lookup, throws KataxWebSocketError if not 
 | `onConnection(handler)` | Handle new connections |
 | `hasRoomListeners(room)` / `getRoomClientsCount(room)` | Room state |
 | `hasConnectedClients()` / `getConnectedClientsCount()` | Global client state |
-| `getServer()` | Raw `SocketIOServer \| null` |
+| `getServer()` | Raw `SocketIOServer \| null` — on the class, not on `IWebSocketService`: `(ws as unknown as { getServer(): import('socket.io').Server \| null }).getServer()` |
 | `close()` | Close the server |
 
 The first socket created also gets wired to the logger for broadcast (`logger.setSocketService`) automatically.
@@ -339,8 +355,10 @@ ws.onConnection((socket) => {
 
 ## Cron Service
 
+`node-cron` is loaded on the first `katax.cron()`. `cron()` returns `Promise<void>`: `await` it so an invalid schedule or a missing `node-cron` fails at the call site. `katax.cronService` exists only after the first `await katax.cron(...)` (before that it throws `KataxConfigError`).
+
 ```ts
-katax.cron({
+await katax.cron({
   name: 'process-assets',
   schedule: '*/10 6-15 * * 1-5',
   task: processAssets,
@@ -350,7 +368,7 @@ katax.cron({
 });
 
 katax.cronService.getJobs();              // [{ name, schedule, enabled, running }]
-katax.cronService.startJob('process-assets');
+await katax.cronService.startJob('process-assets');
 katax.cronService.stopJob('process-assets');
 katax.cronService.removeJob('process-assets');
 katax.cronService.stopAll();
@@ -371,7 +389,7 @@ interface RegistryConfig {
 }
 
 katax.isRegistered;
-katax.getServiceInfo(); // ServiceInfo | null — name, version, hostname, platform, arch, nodeVersion, pid, uptime, memory, metadata, timestamp
+katax.getServiceInfo(); // ServiceInfo, or null when init() had no `registry` — name, version, hostname, platform, arch, nodeVersion, pid, uptime, memory, metadata, timestamp
 ```
 
 ## Health Check
@@ -381,6 +399,7 @@ const health = await katax.healthCheck();
 // { status: 'healthy' | 'degraded' | 'unhealthy',
 //   services: { databases: Record<string, boolean>, sockets: Record<string, boolean>, cron: boolean },
 //   timestamp: number }
+// any failed DB ping / socket / cron check → 'degraded'; every database failing → 'unhealthy'
 
 app.get('/api/health', async (req, res) => {
   const health = await katax.healthCheck();
@@ -418,12 +437,12 @@ katax.heartbeat({ app: katax.appName, port: 3000, version: katax.version, interv
 import { registerProjectInRedis, registerVersionToRedis, startHeartbeat } from 'katax-service-manager';
 await registerProjectInRedis(redisDb, { app: katax.appName, version: katax.version, port: PORT });
 const hb = startHeartbeat(redisDb, { app: katax.appName, port: PORT, intervalMs: 10000 }, ws);
-hb?.stop();
+hb.stop();   // ttlSeconds default 60, intervalMs default (ttl − 10) s
 ```
 
 ## Error Classes
 
-All extend `KataxServiceError` (`code`, `message`, `details`):
+All extend `KataxServiceError` (`code`, `message`, `details?`). Codes: `KATAX_CONFIG_ERROR`, `KATAX_NOT_INITIALIZED`, `KATAX_DATABASE_ERROR`, `KATAX_REDIS_ERROR`, `KATAX_WEBSOCKET_ERROR`, `KATAX_REGISTRY_ERROR`.
 
 ```ts
 import {
@@ -435,49 +454,81 @@ try { await katax.init({ loadEnv: true }); }
 catch (e) { if (e instanceof KataxConfigError) { /* handle */ } }
 ```
 
-## Bootstrap Template
+## Bootstrap Template (real, from api-habit-forge)
+
+PostgreSQL + Redis + Socket.IO on the Express port + dashboard log streams. Everything dashboard-related is **non-fatal**: an unreachable dashboard must never stop the API from booting.
 
 ```ts
-import dotenv from 'dotenv';
-dotenv.config();
-
-import { katax } from 'katax-service-manager';
+import { katax, RedisTransport } from 'katax-service-manager';
+import type { IRedisDatabase } from 'katax-service-manager';
 import { createServer } from 'http';
 import app from './app.js';
+import { initDashboardRegistry } from './registry/dashboard-registry.js';
 
 async function bootstrap(): Promise<void> {
   try {
     await katax.init({
-      loadEnv: true,
-      logger: { level: katax.env('LOG_LEVEL', 'info') as any, prettyPrint: katax.isDev, enableBroadcast: true },
+      loadEnv: true, // dotenv, no manual dotenv.config()
+      logger: { level: katax.env('LOG_LEVEL', 'info') as 'info', prettyPrint: katax.isDev },
     });
 
     await katax.database({
-      name: 'main', type: 'postgresql',
+      name: 'main',
+      type: 'postgresql',
       connection: {
-        host: katax.envRequired('DB_HOST'), port: katax.env('DB_PORT', 5432),
-        database: katax.envRequired('DB_NAME'), user: katax.envRequired('DB_USER'), password: katax.envRequired('DB_PASSWORD'),
+        host: katax.envRequired('DB_HOST'),
+        port: parseInt(katax.env('DB_PORT', '5432')),
+        database: katax.envRequired('DB_NAME'),
+        user: katax.envRequired('DB_USER'),
+        password: katax.envRequired('DB_PASSWORD'),
       },
-      pool: { max: 10, min: 2 },
     });
 
-    await katax.database({ name: 'cache', type: 'redis', connection: { host: katax.env('REDIS_HOST', '127.0.0.1'), port: 6379 } });
+    await katax.database({
+      name: 'redis',
+      type: 'redis',
+      connection: {
+        host: katax.env('REDIS_HOST', 'localhost'),
+        port: parseInt(katax.env('REDIS_PORT', '6379')),
+        password: katax.env('REDIS_PASSWORD'),
+        db: parseInt(katax.env('REDIS_DB', '0')),
+      },
+    });
 
     const PORT = katax.env('PORT', '3000');
     const httpServer = createServer(app);
-    await katax.socket({ name: 'main', httpServer, cors: { origin: '*' } });
+    await katax.socket({ name: 'main', httpServer }); // same port as Express
 
-    katax.cron({ name: 'cleanup', schedule: '0 3 * * *', task: async () => { /* nightly cleanup */ } });
+    let dashboard: { stop: () => Promise<void> } | null = null;
+    try {
+      const redisDb = katax.db('redis') as unknown as IRedisDatabase;
+      katax.logger.addTransport(new RedisTransport(redisDb, { streamKey: 'katax:logs' }));
+      const dashboardTransport = new RedisTransport(redisDb, { streamKey: 'katax:dashboard' });
+      dashboardTransport.filter = (log) => log.level === 'error' || log.level === 'info';
+      katax.logger.addTransport(dashboardTransport);
 
-    httpServer.listen(PORT, () => katax.logger.info({ message: `Server running on http://localhost:${PORT}` }));
+      dashboard = await initDashboardRegistry({ appName: katax.appName, version: katax.version, port: PORT, intervalMs: 10000 });
+
+      await katax.bridge('redis', 'main', { appName: katax.appName, streamKey: 'katax:logs' }).start();
+      await katax.bridge('redis', 'main', { appName: katax.appName, streamKey: 'katax:dashboard' }).start();
+    } catch (err) {
+      katax.logger.warn({ message: 'Dashboard setup failed (non-fatal)', err });
+    }
+
+    httpServer.listen(PORT, () => katax.logger.info({ message: `Server + WebSocket on http://localhost:${PORT}` }));
+
+    katax.onShutdown(async () => { await dashboard?.stop(); });
+    // SIGTERM/SIGINT → katax.shutdown() are registered by katax.init()
   } catch (err) {
-    console.error('Bootstrap failed:', err);
+    console.error('Failed to start application:', err);
     process.exit(1);
   }
 }
 
 void bootstrap();
 ```
+
+`registry/dashboard-registry.ts` (same file in api-habit-forge, api-second-brain, api-my-routine, api-property-scout): reads `DASHBOARD_API_BASE_URL` + `DASHBOARD_API_KEY` (skips if missing), registers over HTTP on first run and saves the assigned `katax.dashboardProjectId` into `package.json`, then sends heartbeats every `intervalMs`; `stop()` clears the interval. Copy it from an existing project rather than reinventing it.
 
 ## Repo Internals (working inside katax-service-manager itself)
 
@@ -508,7 +559,9 @@ npx vitest run -t "asRedis"                              # single test name
 ## Common Gotchas
 
 - `DatabaseConfig.name` and `WebSocketConfig.name` are typed optional but **required at runtime** — throws `KataxDatabaseError`/`KataxWebSocketError` immediately if omitted.
-- `config.getAll()` and `logger.getPinoLogger()` exist on the concrete classes but are **not** part of the public `IConfigService`/`ILoggerService` interfaces — usable, but not guaranteed by the typed contract.
+- `config.getAll()`, `logger.getPinoLogger()`, `ws.getServer()` and `db.asSql()/asMongo()/asRedis()` exist on the concrete classes but are **not** on the public interfaces — cast to the class (`ConfigService`, `LoggerService`, `DatabaseService`) to use them.
+- `katax.db(name)` is typed `IDatabaseService`: narrow it once in `shared/db.ts` (`db()`), don't cast in every repository.
+- `await katax.cron(...)` before touching `katax.cronService`.
 - Never call `katax.db()`/`katax.ws()` before `katax.init()` resolves — throws `KataxNotInitializedError`.
 - `required: false` on `database()` → logs warning and returns `null` instead of throwing on connection failure.
 - Redis reconnect is built-in for katax-managed connections; only customize `reconnectStrategy` for Redis clients created outside katax.

@@ -1,7 +1,7 @@
 {
   "name": "katax-skills",
-  "description": "Skills and agents for the Katax ecosystem: katax-core (validation), katax-cli (scaffolding), katax-service-manager (bootstrap/runtime), katax-ecosystem (cross-package guidance), katax-mcp-server (MCP server + OAuth 2.1 for Claude connectors), plus the katax-project-builder subagent to scaffold new projects end to end.",
-  "version": "1.0.0",
+  "description": "Skills and agent for the Katax ecosystem: katax-core (validation, null/optional rules, JSON Schema), katax-cli (scaffolding + what to fix after generating), katax-service-manager (bootstrap/runtime), katax-ecosystem (house style: validator/types/repository/controller/handler/routes, hardening), katax-mcp-server (stateless MCP server + OAuth 2.1), plus the katax-project-builder agent to create, extend or refactor katax APIs.",
+  "version": "1.1.2",
   "author": {
     "name": "Vinicio Esparza"
   }

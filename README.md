@@ -6,7 +6,8 @@ Documentation site for the Katax ecosystem (`katax-core`, `katax-service-manager
 
 - Overview and key features (type-safe validation, async validation, comprehensive schemas, transform support, minimal dependencies).
 - Installation instructions for all three packages.
-- Full API reference for `katax-core` (all schema types), `katax-service-manager` (services, bootstrap), and `katax-cli` (commands, generators).
+- Full API reference for `katax-core` (all schema types, modifiers, `optional`/`nullable`/`nullish` semantics, JSON Schema / OpenAPI 3.1 output), `katax-service-manager` (services, typed database access, bootstrap), and `katax-cli` (commands, generated project, generators).
+- Current version of each package (hero tags and "Current Published Status" section in `src/pages/index.astro`): keep them in sync when publishing.
 - Quick examples: basic validation, async validators, type inference, nested schemas.
 - Links to GitHub and npm.
 
