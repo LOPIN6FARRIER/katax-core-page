@@ -187,6 +187,11 @@ await emailSchema.safeParseAsync(input);
 - `parse()`/`safeParse()` on a schema with async validation (own or nested) **throws `KataxAsyncValidationRequiredError`** — they don't silently skip it.
 - `validateSchema(schema, data)` (exported by katax-core) picks sync or async automatically; the generated `shared/api.utils.ts` wraps it.
 - A DB check inside a validator is still a repository call. If it can fail (DB down), catch and return an issue rather than throwing.
+- An "already exists?" refine only gives a friendlier message: two concurrent requests both pass it. Uniqueness is
+  guaranteed by a `UNIQUE` constraint and the controller maps the 23505 error to 409 (`katax-ecosystem` →
+  `references/concurrency.md`).
+- Don't check ownership in a validator (`asyncRefine` that loads the row and compares `user_id`): the write that
+  follows can't rely on it. Ownership goes in the controller and in the write's `WHERE`.
 
 ## Errors
 

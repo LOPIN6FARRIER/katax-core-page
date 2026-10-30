@@ -1,8 +1,9 @@
 {
   "name": "katax-skills",
-  "description": "Skills and agent for the Katax ecosystem: katax-core (validation, null/optional rules, JSON Schema), katax-cli (scaffolding + what to fix after generating), katax-service-manager (bootstrap/runtime), katax-ecosystem (house style: validator/types/repository/controller/handler/routes, hardening), katax-mcp-server (stateless MCP server + OAuth 2.1), plus the katax-project-builder agent to create, extend or refactor katax APIs.",
-  "version": "1.1.2",
+  "description": "The katax standard for Node.js/TypeScript APIs (katax-core, katax-service-manager, katax-cli 1.7.1): skills with references and copy-ready templates (layers, null handling, repositories and transactions, race conditions, errors, sessions, security, Redis rate limiting, cron, MCP + OAuth 2.1), the katax-project-builder agent (create, extend, audit and migrate APIs) and hooks that run the katax-audit script after every TypeScript write and before finishing.",
+  "version": "1.2.0",
   "author": {
     "name": "Vinicio Esparza"
-  }
+  },
+  "license": "MIT"
 }

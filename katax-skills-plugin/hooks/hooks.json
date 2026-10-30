@@ -1,0 +1,28 @@
+{
+  "description": "katax-audit: checks TypeScript written in katax projects against the katax standard (does nothing outside projects that depend on katax-core / katax-service-manager).",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/katax-ecosystem/scripts/katax-audit.mjs\" --hook post",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/katax-ecosystem/scripts/katax-audit.mjs\" --hook stop",
+            "timeout": 240
+          }
+        ]
+      }
+    ]
+  }
+}

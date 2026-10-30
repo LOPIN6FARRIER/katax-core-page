@@ -1,48 +1,101 @@
-# Production Hardening — house style for katax-based APIs
+# Production hardening: bootstrap, rate limiting, Redis, CORS, Helmet
 
-Cross-cutting patterns observed consistently across real katax-core + katax-service-manager apps (`api-habit-forge`, `api-my-routine`, `api-second-brain`, `api-property-scout`, `api-time-to-drama`; habit-forge is the most recent and the reference when they differ): rate limiting, CORS, Helmet, the cookie-attachment side of `createResponse`/`sendResponse`, sessions, and the service-registry/heartbeat combo. These apply to any katax-based Express API, independent of whether it also exposes an MCP server (for that, see the `katax-mcp-server` skill, which references this file instead of repeating it).
+Cross-cutting setup for every katax API. Security rules (secrets, JWT, uploads) are in `security.md`, sessions
+and cookies in `auth-and-sessions.md`, background jobs in `workers-and-cron.md`.
 
-## Rate Limiting
+## Contents
 
-`express-rate-limit`, in-memory store (none of the reference repos use a Redis-backed store — acceptable for single-instance deployments, but won't share limits across multiple instances). Pattern: one general limiter on `/api`, plus stricter dedicated limiters layered on top for auth-sensitive routes.
+1. Bootstrap order and configuration
+2. Rate limiting (Redis-backed, with fallback)
+3. Redis connections, one per use
+4. CORS
+5. Helmet and request limits
+6. Dashboard registry and log streams
+7. PM2
+
+## 1. Bootstrap order and configuration
 
 ```ts
-import { rateLimit } from 'express-rate-limit';
+// src/index.ts
+import 'dotenv/config';                     // FIRST line: every module and katax.env() see .env
+import { katax } from 'katax-service-manager';
+import app from './app.js';
+import { validateEnvironment } from './config/env.validator.js';
 
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, message: 'Too many requests, please try again later.', error: 'RATE_LIMIT_EXCEEDED' },
-});
-app.set('trust proxy', 1); // before the limiter: real client IP behind nginx
+async function bootstrap(): Promise<void> {
+  validateEnvironment();                    // exit early with a clear list of missing variables
+  await katax.init({ logger: { level: katax.env('LOG_LEVEL', 'info') as 'info', prettyPrint: katax.isDev } });
+  await katax.database({ name: 'main', type: 'postgresql', connection: { /* katax.envRequired(...) */ } });
+  await katax.database({ name: 'ratelimit', type: 'redis', required: false, connection: { /* db 6 */ } });
+  // ... cache / socket / cron / dashboard (non-fatal)
+  const PORT = katax.env('PORT', 3000);
+  app.listen(PORT, () => katax.logger.info({ message: `Server running on :${PORT}` }));
+  katax.onShutdown(async () => { /* close your own intervals, workers, registry */ });
+}
+void bootstrap();
+```
+
+Why `import 'dotenv/config'` and not `katax.init({ loadEnv: true })`: `loadEnv` loads `.env` inside `init()`, which
+is too late for `katax.env('LOG_LEVEL')` in the same options object (it is evaluated before `init` runs) and for any
+module that reads `process.env` at import time. A real API ignored `LOG_LEVEL` from `.env` for months because of
+this. `dotenv.config()` called inside `index.ts` has the same problem in ESM: imports are evaluated before the
+first statement runs. katax-cli 1.7 generates the `import 'dotenv/config'` line.
+
+- Validate required variables at boot with `console` (the logger does not exist yet) and `process.exit(1)`.
+- Name every connection with a constant (`'main'`, `RATE_LIMIT_REDIS_NAME`), never a string typed twice.
+- Optional services (`required: false`) let the API boot without Redis; code that uses them must cope with
+  `katax.db(name)` throwing.
+- OpenAPI 3.1 is built at runtime by `mountApiDocs()` from each route's `docs()` metadata; never a static
+  `openapi.json`.
+
+## 2. Rate limiting
+
+Counters live in Redis so they survive `pm2 reload` (every deploy) and are shared by every instance; if Redis is
+missing or slow (250 ms) the store counts in memory instead of failing the request. Copy
+`assets/templates/shared/rate-limit.store.ts` and `assets/templates/middleware/rate-limit.middleware.ts`.
+
+```ts
+// app.ts
+import { apiLimiter } from './middleware/rate-limit.middleware.js';
+app.set('trust proxy', 1);          // before the limiters: real client IP behind nginx
 app.use('/api', apiLimiter);
-app.use('/api', router);
+
+// auth.routes.ts
+router.post('/login', authLimiter, loginHandler);
+router.post('/register', authLimiter, registerHandler);
+router.post('/refresh', refreshLimiter, refreshHandler);   // own, looser bucket: the front end refreshes on every load
 ```
 
-If the app also serves MCP, the MCP/OAuth paths get their own limiters (the MCP handshake alone would eat the general budget) and the general one skips them:
+Tiers and keys:
 
-```ts
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
-  skip: (req) => isMcpPath(req.originalUrl.split('?')[0] ?? ''), // src/mcp/mcp.config.ts
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, message: 'Too many requests, please try again later.', error: 'RATE_LIMIT_EXCEEDED' },
-});
-```
+| Limiter | Key | Typical limit | Why |
+| --- | --- | --- | --- |
+| `apiLimiter` on `/api` | `u:<userId>` if the bearer token verifies, else `ip:<ipKeyGenerator>` | 1000 / 100 per 15 min | users behind one NAT don't share a cap |
+| `authLimiter` (login, register, reset, email codes) | IP | 10 per 15 min | brute force |
+| `refreshLimiter` | IP | 60 per 15 min | the login limit would lock real users out |
+| API-key / SDK traffic | `apiKeyId`, never IP | per plan | one backend serves many end users from one IP |
+| uploads / downloads | user or IP | per hour / 5 min | bandwidth and disk |
+| MCP + OAuth | see `katax-mcp-server` | own limiters; the general one skips `isMcpPath()` | the handshake alone would eat the budget |
 
-```ts
-// Stricter limiter on a specific sensitive route (login, registration, email flows)
-const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
-router.post('/login', loginLimiter, loginHandler);
-```
+- `ipKeyGenerator(req.ip)` groups IPv6 by /56; a raw `req.ip` lets one client rotate addresses.
+- Each limiter has its own store name (`new RedisFallbackStore('auth')` -> keys `rl:auth:*`).
+- `standardHeaders: true`, `legacyHeaders: false`, body `{ success: false, message, error: 'RATE_LIMIT_EXCEEDED' }`.
+- If you prefer the `rate-limit-redis` package instead of the template store: its `RedisStore` calls Redis in the
+  constructor, so build the limiter lazily on the first request or it throws `KataxNotInitializedError` at import
+  time; and without Redis every request fails.
 
-`standardHeaders: true` / `legacyHeaders: false` is the consistent choice (modern `RateLimit-*` headers, not the deprecated `X-RateLimit-*` ones). `app.set('trust proxy', 1)` must be set for correct client IP detection behind Nginx/PM2/cloud proxies — without it, every request behind a reverse proxy shares the same perceived IP and the limiter throttles everyone together.
+## 3. Redis connections, one per use
 
-## CORS
+| Connection | Use | Why separate |
+| --- | --- | --- |
+| `redis` / `cache` | log transports (`XADD`), dashboard bridge, registry, heartbeat | the bridge runs blocking `XREADGROUP` reads |
+| `ratelimit` | rate-limit counters | every request waits on it; it must never queue behind a blocking read |
+| `appcache` | application cache | a heavy cache load must not slow the limiters |
+
+Use separate logical DBs (`db: 6`, `db: 7`) on the same server. Never use Redis as the session store: sessions
+are rows in Postgres (`auth-and-sessions.md`).
+
+## 4. CORS
 
 `cors` package, `origin` as a **dynamic callback** re-reading `process.env.ALLOWED_ORIGINS` on every request — not a static array captured at module load, so origins configured via env vars that load after import still take effect.
 
@@ -65,9 +118,9 @@ export const corsOptions: CorsOptions = {
 };
 ```
 
-If the app also runs an MCP OAuth flow (see `katax-mcp-server`), the login page served by the API posts back to the API, so the browser sends the API's own origin: api-habit-forge also pushes `getMcpBaseUrl()` into `allowedOrigins`. With the path split below those routes already go through `mcpCors`; the push matters for apps without the split.
+If the app also runs an MCP OAuth flow (see `katax-mcp-server`), the login page served by the API posts back to the API, so the browser sends the API's own origin: push `getMcpBaseUrl()` into `allowedOrigins` too. With the path split below those routes already go through `mcpCors`; the push matters for apps without the split.
 
-With an MCP server, split CORS by path: the app routes keep the `ALLOWED_ORIGINS` allow-list with cookies; MCP + OAuth endpoints are public by design (bearer tokens, no cookies) and accept any origin, exposing the headers MCP clients read (api-habit-forge):
+With an MCP server, split CORS by path: the app routes keep the `ALLOWED_ORIGINS` allow-list with cookies; MCP + OAuth endpoints are public by design (bearer tokens, no cookies) and accept any origin, exposing the headers MCP clients read:
 
 ```ts
 const appCors = cors(corsOptions);
@@ -77,7 +130,7 @@ app.use((req, res, next) => (isMcpPath(req.path) ? mcpCors : appCors)(req, res, 
 
 Socket.IO gets its own separate CORS config passed directly to `katax.socket({ cors: {...} })` — it is **not** shared with the Express `cors` middleware config; keep both in sync manually if they need to match.
 
-## Helmet
+## 5. Helmet and request limits
 
 Used with defaults in every reference repo — `app.use(helmet())` is enough for a plain REST API. The only override observed anywhere is `contentSecurityPolicy.directives['form-action']`, and only in apps that also run MCP OAuth:
 
@@ -96,74 +149,12 @@ app.use(
 
 Don't add this override unless you actually have a self-posting login form that redirects cross-origin afterward (see `katax-mcp-server` → `references/oauth.md`) — default Helmet CSP is stricter and should stay that way otherwise.
 
-## Cookies via `createResponse` / `sendResponse`
+Request limits: `express.json({ limit: '1mb' })` and `express.urlencoded({ limit: '1mb' })`; uploads have their
+own per-route limits (`security.md`).
 
-The `shared/api.utils.ts` pattern generated by `katax-cli` (see `references/katax-cli.md`) centralizes cookie writes through `ControllerResult.cookies?: ResponseCookie[]`, applied inside `sendResponse()`:
+## 6. Dashboard registry and log streams
 
-```ts
-if (controllerResult.cookies?.length) {
-  for (const cookie of controllerResult.cookies) {
-    cookie.options ? res.cookie(cookie.name, cookie.value, cookie.options) : res.cookie(cookie.name, cookie.value);
-  }
-}
-```
-
-Controllers build cookies as **data**, not side effects — they return `{ ...result, cookies: [{ name, value, options }] }` instead of touching `res` directly. This is the recommended pattern (observed cleanly in `api-property-scout`, which also exports standalone `setCookie(res, name, value, options)` / `clearCookie(res, name, options)` helpers from the same file for the rare case outside the controller-result flow). Prefer this over setting `res.cookie(...)` directly inside route handlers — a couple of reference repos do it ad hoc in the auth handler instead, which works but duplicates cookie-option logic across every place a cookie gets set/cleared instead of centralizing it once.
-
-Keep cookie options in one file (`src/config/cookie.config.ts`, api-my-routine) so set and clear always match:
-
-```ts
-import type { CookieOptions } from 'express';
-
-export const REFRESH_COOKIE_NAME = 'refresh_token';
-
-// parseDurationToMs("15m" | "24h" | "7d") -> ms lives in the same file
-export function getRefreshCookieOptions(): CookieOptions {
-  const isProd = process.env.NODE_ENV === 'production';
-  return {
-    httpOnly: true,
-    secure: isProd,
-    // cross-site web clients (app on another domain) need SameSite=None + Secure in production;
-    // 'lax' in dev so http://localhost works. Same-site deployments can use 'strict'/'lax'.
-    sameSite: isProd ? 'none' : 'lax',
-    path: '/',
-    maxAge: parseDurationToMs(process.env.JWT_REFRESH_EXPIRES_IN || '7d'),
-  };
-}
-
-export function getClearedRefreshCookieOptions(): CookieOptions {
-  return { ...getRefreshCookieOptions(), maxAge: 0 };
-}
-```
-
-Native clients (React Native, Tauri) can't rely on the httpOnly cookie: the client sends `x-platform: mobile|tauri` and only then the refresh token is also returned in the JSON body (api-habit-forge `AccessTokenResult.refresh_token?`). Web clients never get it in the body.
-
-Clearing a cookie is the same shape with `maxAge: 0` and an empty value pushed into the same `cookies[]` array (or a direct `clearCookie()` call using identical options — the options **must match** what was used to set it, or the browser won't clear it).
-
-## Error hygiene (never leak internals)
-
-- Expected failures are `AppError`s (`notFoundError`, `conflictError`, `validationError`, `unauthorizedError`, `forbiddenError`) whose message is written for the client.
-- Everything else (pg errors, bugs) is logged with context and answered with a generic message: `toSafeErrorResult(error, { context, userId })` in every controller `catch`, the same inside `sendResponse`'s catch, and `errorMiddleware` as the last resort.
-- The generated `api.utils.ts` (katax-cli 1.6.2) still returns `error.message` on 500: replace it when you create the project.
-- Express 4 doesn't forward rejected promises from async middleware to `errorMiddleware`. Either every async path goes through `sendResponse` (it catches), or import an async-errors patch (`shared/async-errors.ts` in api-second-brain, same idea as `express-async-errors`) as the first import of `app.ts`.
-- Validation errors: 422 with `[{ field, message }]`; `field` is the dotted path (`schedule.weekdays`).
-
-## Sessions
-
-None of the reference repos use `express-session` or a Redis-backed session store. The consistent pattern is a **Postgres-backed refresh-token session table**:
-
-- Opaque token (`randomUUID()`) or JWT-embedded `sessionId`, hashed (SHA-256) before storing.
-- Session row: `user_id`, `refresh_token_hash`, device info (`user_agent`/`ip_address`/`platform` or a single `device_info`), `expires_at`, `revoked_at`.
-- Refresh rotates: verify hash → revoke the old row → insert a new one, inside `withTransaction()`.
-- Session-limit enforcement (e.g. max 5 concurrent sessions) — oldest revoked when the limit is exceeded.
-- Client-facing endpoints: list sessions, get by id, revoke one, revoke all (except current).
-- Delivered via the httpOnly refresh cookie above; access token stays a short-lived JWT, never stored server-side.
-
-Redis is deliberately **not** the session store in any of these apps — it's reserved for cache, transient OAuth state (if MCP is present), log transport, and heartbeat (see below). Don't reach for `connect-redis`/`express-session` unless you have a specific reason to diverge from this pattern.
-
-## Dashboard registry & log streams
-
-Current pattern (api-habit-forge, api-second-brain, api-my-routine, api-property-scout all ship the same `src/registry/dashboard-registry.ts`): an **HTTP** registry against the Katax dashboard plus two Redis log streams and their WebSocket bridges. All of it inside a try/catch that only warns — a dashboard being down must never crash boot.
+Copy `assets/templates/registry/dashboard-registry.ts`: an **HTTP** registry against the Katax dashboard plus two Redis log streams and their WebSocket bridges. All of it inside a try/catch that only warns — a dashboard being down must never crash boot.
 
 ```ts
 const redisDb = katax.db('redis') as unknown as IRedisDatabase;
@@ -178,4 +169,10 @@ await katax.bridge('redis', 'main', { appName: katax.appName, streamKey: 'katax:
 katax.onShutdown(async () => { await dashboard.stop(); });
 ```
 
-`initDashboardRegistry` needs `DASHBOARD_API_BASE_URL` + `DASHBOARD_API_KEY` (skips with a warning otherwise), registers once and stores `katax.dashboardProjectId` in `package.json`, then heartbeats. The older Redis-only helpers (`registerProjectInRedis`, `katax.heartbeat()`) still exist in katax-service-manager; use them only for services that don't talk to the HTTP dashboard. Full bootstrap: `references/katax-service-manager.md` → "Bootstrap Template".
+`initDashboardRegistry` needs `DASHBOARD_API_BASE_URL` + `DASHBOARD_API_KEY` (skips with a warning otherwise), registers once and stores `katax.dashboardProjectId` in `package.json`, then heartbeats. The older Redis-only helpers (`registerProjectInRedis`, `katax.heartbeat()`) still exist in katax-service-manager; use them only for services that don't talk to the HTTP dashboard. Full bootstrap: skill `katax-service-manager` → "Bootstrap Template".
+
+## 7. PM2
+
+`ecosystem.config.cjs` in fork mode with 1 instance unless you planned for more: Socket.IO needs sticky sessions,
+in-memory caches diverge, and cron jobs fire once per instance (wrap them in `runExclusive`, see
+`workers-and-cron.md`). Secrets go in `.env` on the server (permissions 600), not in `ecosystem.config.cjs`.

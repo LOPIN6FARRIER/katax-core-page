@@ -7,7 +7,8 @@
     {
       "name": "katax-skills",
       "source": "./katax-skills-plugin",
-      "description": "Skills and agents for the Katax ecosystem: katax-core (validation), katax-cli (scaffolding), katax-service-manager (bootstrap/runtime), katax-ecosystem (cross-package guidance), katax-mcp-server (MCP server + OAuth 2.1 for Claude connectors), plus the katax-project-builder subagent."
+      "description": "The katax standard for Node.js/TypeScript APIs: skills with references and copy-ready templates (katax-core, katax-cli 1.7.1, katax-service-manager, MCP + OAuth 2.1, concurrency, security, Redis rate limiting), the katax-project-builder agent (create, extend, audit and migrate APIs) and katax-audit hooks.",
+      "version": "1.2.0"
     }
   ]
 }

@@ -1,6 +1,6 @@
 # OAuth 2.1 for MCP Clients
 
-MCP clients (the Claude connector, claude.ai) authenticate against your API through a **separate OAuth 2.1 layer**, independent of the app's own login: dynamic client registration (RFC 7591), PKCE `S256`, MCP-only JWTs. The code below is the current reference, `api-habit-forge` (`src/mcp/`), which keeps **no OAuth state in Redis or the database**: the client registration and the authorization codes are signed JWTs.
+MCP clients (the Claude connector, claude.ai) authenticate against your API through a **separate OAuth 2.1 layer**, independent of the app's own login: dynamic client registration (RFC 7591), PKCE `S256`, MCP-only JWTs. The code below (files under `src/mcp/`) is the current reference: it keeps **no OAuth state in Redis or the database**: the client registration and the authorization codes are signed JWTs.
 
 ## Files
 
@@ -205,6 +205,6 @@ The `resource_metadata` parameter of `WWW-Authenticate` (RFC 9728) is how a clie
 
 All use `standardHeaders: true, legacyHeaders: false`. The general `/api` limiter skips `isMcpPath()` so the buckets don't overlap.
 
-## Older variant (api-my-routine, api-property-scout)
+## Older variant (Redis store)
 
-These store registered clients and authorization codes in Redis (`mcp-oauth.store.ts` over `katax.db('redis')`: `mcp:client:<id>` without TTL, `mcp:code:<code>` with `EX 120`, consumed with GET then DEL). It works, but it adds a dependency on Redis for login and loses every registration if Redis is flushed; GET-then-DEL is also not atomic (use `GETDEL`). Prefer the stateless version above for new servers.
+These store registered clients and authorization codes in Redis (`mcp-oauth.store.ts` over `katax.db('redis')`: `mcp:client:<id>` without TTL, `mcp:code:<code>` with `EX 120`, consumed with GET then DEL). It works, but it adds a dependency on Redis for login and loses every registration if Redis is flushed; GET-then-DEL also lets two concurrent token requests redeem the same code: consume it with `GETDEL`. Prefer the stateless version above for new servers.

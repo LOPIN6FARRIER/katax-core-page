@@ -50,7 +50,7 @@ The exact field names matter — MCP clients parse this metadata programmaticall
 
 ## Anti-pattern: tools that re-implement or proxy the REST API
 
-`api-time-to-drama` shows what to avoid, in two generations:
+One older API shows what to avoid, in two generations:
 
 - **Hand-rolled stage (older):** `POST /api/mcp` parsed JSON-RPC 2.0 by hand (`initialize` / `tools/list` / `tools/call`) with the app's API-key/JWT middleware and no discovery; a separate `mcp-timetodrama-api` package is a stdio proxy that relays every JSON-RPC call to that endpoint with an `x-api-key`. Generic clients can't discover or authenticate against it.
 - **Current stage:** it now uses the SDK, the OAuth layer and `/.well-known/*` like the reference, but its tools still come from a hand-written `tool-definitions.ts` (~100 KB of JSON Schema literals) and each call is **forwarded over HTTP to the API's own REST routes**, after minting a normal web access token for the MCP identity (`mcp-web-bridge.utils.ts`).

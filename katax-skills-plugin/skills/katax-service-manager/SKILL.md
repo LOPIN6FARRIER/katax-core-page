@@ -17,9 +17,10 @@ House style for how repositories/controllers use the database: `katax-ecosystem`
 ## Quick Start
 
 ```ts
+import 'dotenv/config'; // first import (see "Critical Initialization Order")
 import { katax } from 'katax-service-manager';
 
-await katax.init({ loadEnv: true });
+await katax.init();
 
 const db = await katax.database({
   name: 'main',
@@ -62,7 +63,7 @@ await Katax.reset();          // reset singleton (testing) — awaits shutdown()
 
 ```ts
 await katax.init({
-  loadEnv: true,                 // auto-load .env (requires dotenv, dynamic import)
+  loadEnv: false,                // true = load .env inside init(); the standard uses import 'dotenv/config' instead (below)
   appName: 'my-api',             // override (else KATAX_APP_NAME → npm_package_name → package.json)
   logger: { level: 'info', prettyPrint: true, enableBroadcast: false },
   hooks: {
@@ -79,21 +80,20 @@ await katax.init({
 ### ⚠️ Critical Initialization Order
 
 ```ts
-// ✅ Option 1: manual dotenv
-import dotenv from 'dotenv';
-dotenv.config();
+// ✅ The katax standard (katax-cli 1.7 generates it): load .env before ANY other import
+import 'dotenv/config';
 import { katax } from 'katax-service-manager';
+import app from './app.js';
 
-// ✅ Option 2: built-in loadEnv
-import { katax } from 'katax-service-manager';
-await katax.init({ loadEnv: true });
-
-// ❌ WRONG — katax reads env at usage time, but importing dotenv after katax
-// still risks races/ordering bugs; always load env before using services
-import { katax } from 'katax-service-manager';
-import dotenv from 'dotenv';
-dotenv.config();
+await katax.init({ logger: { level: katax.env('LOG_LEVEL', 'info') as 'info' } });
 ```
+
+Why not `katax.init({ loadEnv: true })`: `loadEnv` loads `.env` inside `init()`, but the options object is built
+before `init()` runs, so `katax.env('LOG_LEVEL')` in it reads the variable before `.env` is loaded and silently
+falls back to the default. Modules that read `process.env` at import time (secrets, URLs) have the same problem.
+`dotenv.config()` called as a statement in `index.ts` is also too late under ESM: every `import` is evaluated
+before the first statement. `loadEnv: true` is fine only when nothing reads the environment before `init()`
+resolves.
 
 ### Internals (init flow)
 
@@ -450,25 +450,27 @@ import {
   KataxDatabaseError, KataxRedisError, KataxWebSocketError, KataxRegistryError,
 } from 'katax-service-manager';
 
-try { await katax.init({ loadEnv: true }); }
+try { await katax.init(); }
 catch (e) { if (e instanceof KataxConfigError) { /* handle */ } }
 ```
 
-## Bootstrap Template (real, from api-habit-forge)
+## Bootstrap Template
 
 PostgreSQL + Redis + Socket.IO on the Express port + dashboard log streams. Everything dashboard-related is **non-fatal**: an unreachable dashboard must never stop the API from booting.
 
 ```ts
+import 'dotenv/config'; // first: LOG_LEVEL and every module see .env
 import { katax, RedisTransport } from 'katax-service-manager';
 import type { IRedisDatabase } from 'katax-service-manager';
 import { createServer } from 'http';
 import app from './app.js';
 import { initDashboardRegistry } from './registry/dashboard-registry.js';
+import { RATE_LIMIT_REDIS_NAME } from './shared/rate-limit.store.js';
+import { registerJobs } from './jobs/index.js';
 
 async function bootstrap(): Promise<void> {
   try {
     await katax.init({
-      loadEnv: true, // dotenv, no manual dotenv.config()
       logger: { level: katax.env('LOG_LEVEL', 'info') as 'info', prettyPrint: katax.isDev },
     });
 
@@ -494,6 +496,21 @@ async function bootstrap(): Promise<void> {
         db: parseInt(katax.env('REDIS_DB', '0')),
       },
     });
+
+    // Rate-limit counters on their own connection: the 'redis' one carries blocking stream reads (bridge).
+    await katax.database({
+      name: RATE_LIMIT_REDIS_NAME,
+      type: 'redis',
+      required: false, // without Redis the limiters fall back to memory
+      connection: {
+        host: katax.env('REDIS_HOST', 'localhost'),
+        port: parseInt(katax.env('REDIS_PORT', '6379')),
+        password: katax.env('REDIS_PASSWORD'),
+        db: parseInt(katax.env('REDIS_RATELIMIT_DB', '6')),
+      },
+    });
+
+    await registerJobs(); // every job wrapped in runExclusive (katax-ecosystem → references/workers-and-cron.md)
 
     const PORT = katax.env('PORT', '3000');
     const httpServer = createServer(app);
@@ -528,7 +545,7 @@ async function bootstrap(): Promise<void> {
 void bootstrap();
 ```
 
-`registry/dashboard-registry.ts` (same file in api-habit-forge, api-second-brain, api-my-routine, api-property-scout): reads `DASHBOARD_API_BASE_URL` + `DASHBOARD_API_KEY` (skips if missing), registers over HTTP on first run and saves the assigned `katax.dashboardProjectId` into `package.json`, then sends heartbeats every `intervalMs`; `stop()` clears the interval. Copy it from an existing project rather than reinventing it.
+`registry/dashboard-registry.ts` (copy `katax-ecosystem/assets/templates/registry/dashboard-registry.ts`; needs `axios`): reads `DASHBOARD_API_BASE_URL` + `DASHBOARD_API_KEY` (skips if missing), registers over HTTP on first run and saves the assigned `katax.dashboardProjectId` into `package.json`, then sends heartbeats every `intervalMs`; `stop()` clears the interval.
 
 ## Repo Internals (working inside katax-service-manager itself)
 
@@ -566,3 +583,6 @@ npx vitest run -t "asRedis"                              # single test name
 - `required: false` on `database()` → logs warning and returns `null` instead of throwing on connection failure.
 - Redis reconnect is built-in for katax-managed connections; only customize `reconnectStrategy` for Redis clients created outside katax.
 - `Katax.reset()` is async — always `await` it in test teardown, it awaits `shutdown()` and removes process listeners.
+- Anything built at import time that touches a katax service (a `rate-limit-redis` `RedisStore`, a cache warm-up) runs before `katax.init()` and throws `KataxNotInitializedError`: build it lazily on first use.
+- `katax.cron` fires on every PM2 instance and during the overlap of `pm2 reload`: wrap each task in `runExclusive()` (`katax-ecosystem` → `assets/templates/shared/job-lock.utils.ts`).
+- Keep the Redis connection used by `katax.bridge` (blocking `XREADGROUP`) separate from the ones request paths wait on (rate limit, cache).

@@ -8,11 +8,11 @@ argument-hint: 'What MCP aspect? (server setup/tools registry/OAuth/well-known d
 
 How to expose an Express API built on `katax-core` + `katax-service-manager` as a standards-compliant **MCP (Model Context Protocol)** server, so Claude's connector (or any MCP client) can call it directly. This is an architecture layer that sits **on top of** the katax packages, not a katax package itself — it builds on:
 
-- `katax-core` schemas' `toJsonSchema()` (see `katax-ecosystem/references/katax-core.md`) to generate MCP tool `inputSchema`s from the same validators used for REST request validation, with zero duplication.
+- `katax-core` schemas' `toJsonSchema()` (see the `katax-core` skill) to generate MCP tool `inputSchema`s from the same validators used for REST request validation, with zero duplication.
 - `katax-service-manager`'s `katax.db('redis')` for OAuth transient state, and its logger/JWT-adjacent config helpers.
 - `katax-ecosystem`'s `references/production-hardening.md` for the CORS/Helmet adjustments MCP OAuth needs — **not repeated here**.
 
-Reference architecture is drawn from the real katax apps (`api-habit-forge` — newest, the reference —, `api-my-routine`, `api-second-brain`, `api-property-scout`), all using the official `@modelcontextprotocol/sdk` with a full OAuth 2.1 layer. `api-time-to-drama` (hand-written tool schemas that forward each call over HTTP to its own REST routes) is documented as what **not** to do.
+The architecture below is the one the katax APIs converged on, using the official `@modelcontextprotocol/sdk` with a full OAuth 2.1 layer. Hand-written tool schemas that forward each call over HTTP to the API's own REST routes are documented as what **not** to do.
 
 ## Architecture in one paragraph
 

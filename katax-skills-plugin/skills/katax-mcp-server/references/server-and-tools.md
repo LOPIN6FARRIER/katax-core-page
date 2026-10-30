@@ -1,6 +1,6 @@
 # MCP Server & Tools Registry
 
-Reference architecture from the real katax APIs that expose MCP servers (`api-habit-forge` — newest, the reference —, `api-my-routine`, `api-second-brain`, `api-property-scout`).
+The architecture the katax APIs that expose MCP servers converged on; all the code needed is in this file.
 
 ## SDK Setup (`src/mcp/mcp.server.ts`)
 
@@ -90,7 +90,7 @@ router.delete('/', mcpLimiter, requireMcpAuth, methodNotAllowed);
 
 Every POST gets its own `Server` + transport and no `Mcp-Session-Id` is issued: nothing is lost on restart/deploy, it works with several PM2 instances, and the identity comes from the bearer token on each request.
 
-Older APIs (api-second-brain, api-property-scout) keep a `Map<sessionId, { server, transport }>`; that map doesn't survive restarts and breaks across instances. Migrate to the stateless version unless you actually need server → client notifications.
+Older APIs keep a `Map<sessionId, { server, transport }>`; that map doesn't survive restarts and breaks across instances. Migrate to the stateless version unless you actually need server → client notifications.
 
 ## Tools Registry
 
