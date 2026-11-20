@@ -162,8 +162,12 @@ Copy `assets/templates/registry/dashboard-registry.ts`: an **HTTP** registry aga
 
 ```ts
 const redisDb = katax.db('redis') as unknown as IRedisDatabase;
-katax.logger.addTransport(new RedisTransport(redisDb, { streamKey: 'katax:logs' }));        // every log
-const dashboardTransport = new RedisTransport(redisDb, { streamKey: 'katax:dashboard' });   // what the dashboard shows
+// maxLen caps the stream (XADD ... MAXLEN ~ <maxLen>) so it doesn't grow forever — without it a
+// busy app can push a stream into the millions of entries. Must be a STRING: katax-service-manager
+// 0.6.1 forwards it as-is into a raw redis() call, which rejects numbers (katax-service-manager
+// skill, Common Gotchas; known-issues.md B13). This bit every API that skipped it.
+katax.logger.addTransport(new RedisTransport(redisDb, { streamKey: 'katax:logs', maxLen: '20000' as unknown as number }));        // every log
+const dashboardTransport = new RedisTransport(redisDb, { streamKey: 'katax:dashboard', maxLen: '20000' as unknown as number });   // what the dashboard shows
 dashboardTransport.filter = (log) => log.level === 'error' || log.level === 'info';
 katax.logger.addTransport(dashboardTransport);
 

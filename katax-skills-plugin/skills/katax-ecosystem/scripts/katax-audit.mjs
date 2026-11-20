@@ -361,6 +361,17 @@ const RULES = [
     }
   },
   {
+    id: 'redis-maxlen-number',
+    level: 'error',
+    fix: "Pass maxLen as a string ('20000' as unknown as number): RedisTransport forwards it as-is into a raw XADD call, which rejects a plain number — on every single log, not just when trimming kicks in (katax-service-manager 0.6.1; known-issues.md B13).",
+    applies: () => true,
+    check(src) {
+      const out = [];
+      for (const m of src.matchAll(/\bmaxLen\s*:\s*(\d+)\b/g)) out.push({ index: m.index, message: 'RedisTransport maxLen set as a number, not a string' });
+      return out;
+    }
+  },
+  {
     id: 'inline-types',
     level: 'warn',
     fix: 'Views and params go in <resource>.types.ts, rows in types/db.types.ts, inputs are inferred in the validator.',

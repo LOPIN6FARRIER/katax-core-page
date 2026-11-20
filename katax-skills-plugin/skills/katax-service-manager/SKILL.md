@@ -279,7 +279,8 @@ log.info({ message: 'Payment processed' }); // includes bindings
 import { RedisTransport, TelegramTransport, CallbackTransport } from 'katax-service-manager';
 
 const redisDb = katax.db('redis') as unknown as IRedisDatabase;   // RedisTransport needs IRedisDatabase
-const redis = new RedisTransport(redisDb, { streamKey: 'katax:logs', maxLen: 10000 });
+// maxLen as a STRING, not a number — see the 0.6.1 gotcha below (raw redis() calls reject numbers).
+const redis = new RedisTransport(redisDb, { streamKey: 'katax:logs', maxLen: '10000' as unknown as number });
 redis.filter = (log) => log.level === 'error' || log.persist === true;
 katax.logger.addTransport(redis);
 
@@ -587,4 +588,4 @@ npx vitest run -t "asRedis"                              # single test name
 - `katax.cron` fires on every PM2 instance and during the overlap of `pm2 reload`: wrap each task in `runExclusive()` (`katax-ecosystem` → `assets/templates/shared/job-lock.utils.ts`).
 - Keep the Redis connection used by `katax.bridge` (blocking `XREADGROUP`) separate from the ones request paths wait on (rate limit, cache). Symptom when shared: ordinary requests take seconds, because every command queues behind the blocking read. Each bridge gets its own connection too.
 - 0.6.1: katax-managed node-redis clients have **no `'error'` listener**, so a Redis restart or network blip emits an unhandled `'error'` and kills the process. At bootstrap, after registering the connections, attach a listener to each one (`asRedis().on('error', (err) => logger.warn(...))`, through the concrete `DatabaseService`). Remove the workaround once the library ships its own.
-- 0.6.1: `katax.cache().set(key, value, ttl)` passes the TTL as a number, which node-redis rejects, so nothing is cached with a TTL. Until fixed, send raw commands with string arguments (`['SET', key, json, 'EX', String(ttl)]`); the same rule applies to any raw `redis(...)` call: strings only.
+- **Fixed in 0.6.2** — on 0.6.1 and earlier, `RedisAdapter.redis()` forwarded raw args into `sendCommand()` without coercion, which rejects anything that isn't a string or Buffer. Any numeric arg to a raw `redis(...)` call threw `"arguments[N] must be of type string | Buffer"`: `katax.cache().set(key, value, ttl)` (TTL), `.expire(key, seconds)`, `.incrBy(key, increment)`, and `RedisTransport`'s `maxLen` option (thrown on **every single log**, not just when trimming kicks in — `MAXLEN` is pushed into the `XADD` args unconditionally whenever `maxLen` is set). On 0.6.1 or older, work around it by passing the number as a string yourself (`maxLen: '10000' as unknown as number`, `['SET', key, json, 'EX', String(ttl)]`); on 0.6.2+ it's coerced automatically and the cast is unnecessary (harmless to leave if some of your connections are still on an older pinned version).

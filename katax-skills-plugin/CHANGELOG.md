@@ -1,5 +1,20 @@
 # Changelog - katax-skills
 
+## 1.5.1 - 2026-11-20
+
+### Fixed
+- `known-issues.md` B13 (new) + `katax-audit.mjs` rule `redis-maxlen-number`: a numeric arg to any raw `redis(...)`
+  call — `RedisTransport`'s `maxLen`, `CacheService.set`'s `ttl`/`.expire`'s `seconds`/`.incrBy`'s `increment` —
+  threw `"arguments[N] must be of type string | Buffer, got number instead"` on katax-service-manager <= 0.6.1.
+  `maxLen` hit hardest: it throws on **every single log call**, not only once trimming actually kicks in. Found
+  across 11 production APIs that had just added `maxLen` following the skill's own (wrong) example.
+  - **Fixed at the root in katax-service-manager 0.6.2**: `RedisAdapter.redis()` now coerces every numeric arg to
+    a string before `sendCommand()`, so no caller needs its own cast. Upgrade to drop the workaround.
+  - `katax-service-manager` skill: fixed the `RedisTransport` example and rewrote the gotcha to describe the real
+    fix (0.6.2) with the <= 0.6.1 workaround as a fallback.
+  - `katax-ecosystem` → `production-hardening.md` §6: the dashboard log-stream example never had `maxLen` at all,
+    so streams grew unbounded (one hit ~15M entries / ~2GB in Redis before this). Added it.
+
 ## 1.5.0 - 2026-11-19
 
 ### Changed
