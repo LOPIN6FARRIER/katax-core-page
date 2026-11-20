@@ -1,5 +1,83 @@
 # Changelog - katax-skills
 
+## 1.5.0 - 2026-11-19
+
+### Changed
+- `/katax-skills:katax-new-api` and `/katax-skills:katax-add-resource` now run in the main conversation: scope
+  interview first, then they start the `katax-project-builder` agent with the spec as its contract. The agent
+  returns open decisions instead of guessing when it gets no spec.
+
+### Added
+- Skill `katax-security-audit` (`/katax-skills:katax-security-audit [diff <ref> | resource <name> | full]`): security
+  audit with independently verified findings, adapted from Cloudflare's `security-audit-skill` (coverage ledger,
+  isolated hunters, a fresh verifier per candidate, schema-checked records) but cheaper: the inventory, the coverage
+  critic, record validation, carry-over between runs and the report are scripts.
+  - `katax-routes.mjs`: endpoints with full path and inherited middleware, handler → validator / controller,
+    MCP tools (grouped with their REST twin), socket events, cron jobs, risk hints, hunting groups, per-unit file
+    hash; `--diff <ref>` scope; `--md` table.
+  - `katax-findings.mjs`: `ledger`, `gaps` (required check classes per unit), `findings` (per-status fields,
+    units exist, file:line exists), `carry` (reuse unchanged units from a previous run), `report`.
+  - References: `checklist.md` (21 classes, katax-specific), `records.md` (run folder outside the repo, formats,
+    severities).
+- Skill `scope-interview` (any project): before a new API or a feature that leaves decisions open, rounds of at
+  most 4 questions with a recommended default each (problem and outcome, scope must / later / no, flows and
+  acceptance criteria, data, permission matrix, architecture, non-functional, rollout), reading the repository
+  first so it never asks what the code answers; ends in a spec from `assets/spec-template.md` and a go from the
+  user. Unattended, it takes the defaults and lists them as assumptions.
+- Agents `katax-security-hunter` (read-only, writes only its hunt file) and `katax-security-verifier` (read-only,
+  tries to disprove one candidate).
+
+## 1.4.0 - 2026-11-19
+
+### Added
+- Skill `test-strategy` (any language or framework): investigate the stack and the existing suite first, propose a
+  way of working and ask which runner and how far to go ("necessary" or "optimize as much as possible"), value
+  filters, one rule at one level, an optimize procedure (inventory, keep/merge/rewrite/delete, mutation testing on
+  critical modules) and a report format. References: `frameworks.md` (detection, defaults per stack, real
+  databases in tests, mutation tools) and `examples.md` (before/after cases).
+- Migrations: runner template (`shared/migrations.ts` + `repositories/migrations.repository.ts`) that creates
+  `schema_migrations` if missing, takes a PostgreSQL advisory lock, applies each pending `migrations/NNN_name.sql`
+  in its own transaction, warns when an applied file changed (checksum) and supports a baseline for existing
+  databases (`MIGRATIONS_BASELINE_THROUGH`). Runs from katax's `afterInit` hook with its own `pg.Client` and an optional
+  table-owner user (`DB_MIGRATIONS_USER`), or after `katax.database()` with a pooled client. Always asks the user before adding `migrations/` (a public repository exposes the
+  schema); unattended runs put the SQL in the report instead. Reference `migrations.md`, known issue D10, audit rule `migration-not-idempotent`.
+
+### Changed
+- Tests no longer say "Vitest, the only runner": use the project's runner (Vitest by default for new katax
+  projects, one runner per repository) and prefer endpoint tests against a real database built by the migrations;
+  the agent loads `test-strategy` before writing tests.
+
+## 1.3.0 - 2026-11-19
+
+Lessons from building and hardening a real multi-repo katax system (API + worker + file service): authorization
+that silently disappeared, cross-parent lookups, token confusion between issuers, uploads, Redis, and tooling
+that broke deploys.
+
+### Added
+- Commands that run the `katax-project-builder` agent from the `/` menu: `katax-new-api`, `katax-add-resource`,
+  `katax-audit-api` (skills with `context: fork`, slash-only).
+- Audit rules: `multer-param-charset`, `upload-in-memory`, `missing-eslint-config`, `pnpm-release-age-katax`;
+  `katax-core-version` now asks for `^1.6.7`.
+- Known issues D7-D9, C7, S9-S14, B9-B12, T4-T5 (missing columns reaching production, legacy triggers, orphaned
+  external resources, overlapping client saves, IDOR through child ids, interchangeable tokens, mangled upload
+  names, client-supplied file types, MCP tools weaker than REST, authorization living only in validators,
+  katax-core <= 1.6.6 skipping `asyncRefine`, uploads buffered in RAM, Redis clients without an error listener,
+  pnpm's 24 h release age, missing ESLint config and mixed runners, dead checks).
+- `workers-and-cron.md`: cleaning up external resources (soft delete + retention job + compensation).
+- Agent: "Working in someone else's repositories" (git instructions, `.env*`, line endings, minimal lockfile edits
+  and frozen installs, real-database runs, query counts on hot paths, contract deviations, half-finished work) and
+  richer Finish/Report steps.
+
+### Changed
+- Standard targets katax-core 1.6.7; required negative authorization tests; real PostgreSQL run of new SQL when
+  available; repository hygiene and contracts sections in `katax-ecosystem` SKILL.md.
+- `security.md`: `aud` per token issuer; uploads section rewritten (charset, allow-lists, no client-type fallback,
+  text detection, streaming, concurrency, check-first); child lookups scoped by the URL parent.
+- `jwt.utils.ts` template signs and verifies `aud`.
+- `katax-service-manager`: 0.6.1 gotchas (no Redis `'error'` listener, `cache().set` TTL ignored, bridges need
+  their own connection).
+- `katax-mcp-server`: separate `aud` for MCP tokens; tools never check less than REST.
+
 ## 1.2.0 - 2026-10-30
 
 The standard was rebuilt from twelve real katax APIs, taking the best implementation of each topic from

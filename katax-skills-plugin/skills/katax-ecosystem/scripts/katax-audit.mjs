@@ -499,6 +499,36 @@ const RULES = [
     }
   },
   {
+    id: 'multer-param-charset',
+    level: 'warn',
+    fix: 'Add defParamCharset: "utf8" to the multer options: the default (latin1) turns "Árbol.png" into "Ãrbol.png".',
+    applies: () => true,
+    check(src) {
+      const out = [];
+      for (const m of src.matchAll(/\bmulter\s*\(/g)) {
+        const call = callText(src, m.index + m[0].length - 1);
+        if (!/defParamCharset\s*:/.test(call)) out.push({ index: m.index, message: 'multer without defParamCharset: "utf8"' });
+      }
+      return out;
+    }
+  },
+  {
+    id: 'upload-in-memory',
+    level: 'warn',
+    fix: 'Large uploads must not sit whole in RAM: stream them (busboy / custom multer storage), cap concurrency, or lower the limit (security.md §6).',
+    applies: () => true,
+    check(src) {
+      const out = [];
+      for (const m of src.matchAll(/\bmulter\s*\(/g)) {
+        const call = callText(src, m.index + m[0].length - 1);
+        if (!/memoryStorage\s*\(/.test(call)) continue;
+        const size = /fileSize\s*:\s*(\d+)\s*\*\s*1024\s*\*\s*1024/.exec(call);
+        if (size && Number(size[1]) > 50) out.push({ index: m.index, message: `memoryStorage with a ${size[1]} MB limit` });
+      }
+      return out;
+    }
+  },
+  {
     id: 'missing-describe',
     level: 'warn',
     fix: 'Add .describe() to every field: it feeds OpenAPI and the MCP tool schemas.',
@@ -524,8 +554,47 @@ function projectChecks(root) {
     add('static-openapi', 'warn', 'src/openapi.json', 'static OpenAPI file', 'Build OpenAPI 3.1 at runtime from docs() + toJsonSchema().');
   }
   const core = deps['katax-core'];
-  if (core && /^\^?1\.(?:[0-5]\.|6\.[0-5]\b)/.test(core)) {
-    add('katax-core-version', 'warn', 'package.json', `katax-core ${core}`, 'Use ^1.6.6: older versions mark .nullish() fields as required in toJsonSchema().');
+  if (core && /^\^?1\.(?:[0-5]\.|6\.[0-6]\b)/.test(core)) {
+    add('katax-core-version', 'warn', 'package.json', `katax-core ${core}`, 'Use ^1.6.7: up to 1.6.6, an asyncRefine chained before .transform()/.refine() never runs (permission checks in validators are silently skipped), and up to 1.6.5 .nullish() fields are marked required in toJsonSchema().');
+  }
+  const hasEslintConfig = fs.readdirSync(root).some((f) => /^(eslint\.config\.(js|mjs|cjs|ts)|\.eslintrc(\.(js|cjs|json|ya?ml))?)$/.test(f));
+  if (!hasEslintConfig) {
+    add('missing-eslint-config', 'warn', 'package.json', 'no ESLint config', 'Add eslint.config.js (typescript-eslint recommended) and a "lint" script, so the API can be linted like the rest.');
+  }
+  const usesKatax = Object.keys(deps).some((d) => d.startsWith('katax-'));
+  if (usesKatax && fs.existsSync(path.join(root, 'pnpm-lock.yaml'))) {
+    const ws = path.join(root, 'pnpm-workspace.yaml');
+    const wsText = fs.existsSync(ws) ? fs.readFileSync(ws, 'utf8') : '';
+    if (!/minimumReleaseAgeExclude[\s\S]*['"]?katax-\*['"]?/.test(wsText)) {
+      add('pnpm-release-age-katax', 'warn', 'pnpm-workspace.yaml', "katax-* not excluded from minimumReleaseAge", "pnpm >= 11 refuses versions under 24 h old: add minimumReleaseAgeExclude: ['katax-*'] so a fresh katax release (often a fix) installs, locally and on the deploy runner.");
+    }
+  }
+  // Migrations after the baseline must be idempotent (references/migrations.md).
+  const migrationsDir = ['migrations', path.join('sql', 'migrations')].map((d) => path.join(root, d)).find((d) => fs.existsSync(d));
+  if (migrationsDir) {
+    const exampleEnv = path.join(root, '.env.example');
+    const baselineMatch = fs.existsSync(exampleEnv) ? /^\s*MIGRATIONS_BASELINE_THROUGH\s*=\s*(\d+)/m.exec(fs.readFileSync(exampleEnv, 'utf8')) : null;
+    const baselineNumber = baselineMatch ? Number(baselineMatch[1]) : -1;
+    const checks = [
+      [/\bCREATE\s+TABLE\s+(?!IF\s+NOT\s+EXISTS)/i, 'CREATE TABLE without IF NOT EXISTS'],
+      [/\bCREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:CONCURRENTLY\s+)?(?!IF\s+NOT\s+EXISTS)/i, 'CREATE INDEX without IF NOT EXISTS'],
+      [/\bADD\s+COLUMN\s+(?!IF\s+NOT\s+EXISTS)/i, 'ADD COLUMN without IF NOT EXISTS'],
+      [/\bDROP\s+(?:TABLE|INDEX|COLUMN|TRIGGER|FUNCTION|TYPE|CONSTRAINT)\s+(?!IF\s+EXISTS)/i, 'DROP without IF EXISTS']
+    ];
+    for (const file of fs.readdirSync(migrationsDir).filter((f) => /^\d{3,}_.+\.sql$/.test(f)).sort()) {
+      if (Number(file.split('_')[0]) <= baselineNumber) continue;
+      const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8').replace(/--.*$/gm, '');
+      if (/katax-audit-ignore-file\s+migration-not-idempotent/.test(fs.readFileSync(path.join(migrationsDir, file), 'utf8'))) continue;
+      // Statements inside DO $$ ... $$ blocks are guarded by hand (IF NOT EXISTS (SELECT ...)).
+      const outsideDo = sql.replace(/DO\s+\$\$[\s\S]*?\$\$/gi, '');
+      for (const [re, what] of checks) {
+        if (re.test(outsideDo)) {
+          add('migration-not-idempotent', 'warn', path.relative(root, path.join(migrationsDir, file)), what,
+            'Migrations may run more than once (a restart mid-deploy, a restored backup): guard every statement (IF NOT EXISTS / IF EXISTS / DO $$ blocks). Files applied by hand before the runner: set MIGRATIONS_BASELINE_THROUGH in .env.example.');
+          break;
+        }
+      }
+    }
   }
   const index = path.join(root, 'src', 'index.ts');
   if (fs.existsSync(index)) {

@@ -95,6 +95,10 @@ Tiers and keys:
 Use separate logical DBs (`db: 6`, `db: 7`) on the same server. Never use Redis as the session store: sessions
 are rows in Postgres (`auth-and-sessions.md`).
 
+Every bridge (`katax.bridge(...)`) gets its own connection, never one a request path uses; and every connection
+gets an `'error'` listener at bootstrap (katax-service-manager 0.6.1 doesn't attach one, and an unhandled
+`'error'` ends the process; see that skill's gotchas).
+
 ## 4. CORS
 
 `cors` package, `origin` as a **dynamic callback** re-reading `process.env.ALLOWED_ORIGINS` on every request — not a static array captured at module load, so origins configured via env vars that load after import still take effect.

@@ -55,6 +55,21 @@ export async function registerJobs(): Promise<void> {
   returns 202; it never runs unbounded work inline.
 - Writes the result through a repository (`variantsRepository.saveVariant(...)`).
 
+## Cleaning up external resources
+
+When a row points at something stored elsewhere (a file in a storage service, an object in a bucket, a record in
+another API):
+
+- Deleting is soft in the app (`deleted_at`, plus who deleted it). A daily job, under `runExclusive` and in
+  batches, deletes the external resource for rows past the retention window, then deletes the row. "Not found"
+  from the external service counts as done.
+- The API's restore uses the same retention cutoff as the job, so the job never deletes something that can still
+  be restored.
+- If a request stores the external resource and a later step fails (insert, validation), the request deletes it
+  before answering; nothing waits for a job to find orphans.
+- The job's environment (base URL, key) is checked at boot: without it the job is not scheduled and a warning is
+  logged, instead of failing at 3 a.m.
+
 ## Prohibited
 
 - SQL in a service, worker or job (`db.query(...)` on a raw connection): move it to a repository so ownership,

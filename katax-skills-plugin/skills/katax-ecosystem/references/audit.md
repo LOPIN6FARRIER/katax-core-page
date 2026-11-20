@@ -5,7 +5,8 @@ to review, audit, migrate or harden an API, and after generating code.
 
 ## The script
 
-`scripts/katax-audit.mjs` in this skill (Node >= 18, no dependencies). It only acts on projects whose
+For a security review with proven findings (who can reach what), use the `katax-security-audit` skill; this
+page covers the standard. `scripts/katax-audit.mjs` in this skill (Node >= 18, no dependencies). It only acts on projects whose
 `package.json` depends on `katax-core` or `katax-service-manager`.
 
 ```bash
@@ -51,7 +52,11 @@ Exit code 1 when there are errors. The same script runs as the plugin's hooks:
 | `error-message-matching` | warn | status decided by comparing `error.message` |
 | `memory-rate-limit` | warn | `rateLimit({...})` without `store` |
 | `missing-describe` | warn | validator fields without `.describe()` |
+| `multer-param-charset` | warn | `multer({...})` without `defParamCharset: "utf8"` |
+| `upload-in-memory` | warn | `memoryStorage()` with a `fileSize` limit above 50 MB |
 | `dotenv-first`, `katax-core-version`, `static-openapi`, `express-session` | warn | project-level |
+| `missing-eslint-config`, `pnpm-release-age-katax` | warn | project-level |
+| `migration-not-idempotent` | warn | `migrations/NNN_*.sql` after `MIGRATIONS_BASELINE_THROUGH` (read from `.env.example`) with an unguarded `CREATE`/`ADD COLUMN`/`DROP` outside `DO $$` blocks |
 
 ### Exceptions
 
@@ -73,16 +78,28 @@ one) and the fix.
 
 - [ ] Every private route is mounted after `requireAuth`; every controller scopes by `userId`; another user's
       resource answers 404.
+- [ ] Child resources are looked up and written under the URL parent, not by their own id (S9).
+- [ ] Every endpoint that checks membership or roles has a negative test (outsider, read-only member) (S14).
+- [ ] New or changed SQL was run once against a real PostgreSQL with the project's migrations (D7); triggers
+      listed and understood (D8).
+- [ ] Migrations: runner at startup after the DB connects, idempotent files, no edited applied files, one owner
+      service (D10, `migrations.md`).
 - [ ] Every multi-statement write is in one `withTransaction`, and the transaction covers all of them.
 - [ ] Every one-time value, limit and counter follows `concurrency.md`.
 - [ ] Sessions: hashed opaque refresh tokens, atomic rotation, per-user limit under `lockKey`, cookie on
       `/api/auth`, `sameSite` right for the deployment (`auth-and-sessions.md`).
 - [ ] Rate limits: Redis store, tiers and keys from `production-hardening.md` §2, own Redis connection.
-- [ ] Uploads: size limits, magic-byte type, generated names, `nosniff` + `Content-Disposition` (`security.md` §6).
+- [ ] Uploads: size limits, `defParamCharset: "utf8"`, magic-byte type with a per-route allow-list and no fallback
+      to the client's type, streaming for large files, concurrency cap, generated names, `nosniff` +
+      `Content-Disposition` (`security.md` §6); external copies cleaned up on failure (D9).
+- [ ] Tokens: every issuer signs `aud` + `typ`; verifiers check both with `algorithms` (S10).
+- [ ] Redis: request paths never share the bridge's connection (B4); every client has an `'error'` listener (B11).
 - [ ] Sockets authenticated; refuse all when the token is not configured.
-- [ ] MCP (if present): stateless transport, tools from validators + controllers, identity from the token
-      (`katax-mcp-server`).
-- [ ] Dependencies: `katax-core ^1.6.6`, `katax-service-manager ^0.6.1`, `bcryptjs ^3`.
+- [ ] MCP (if present): stateless transport, tools from validators + controllers, identity from the token, no tool
+      weaker than its REST endpoint (S13) (`katax-mcp-server`).
+- [ ] Dependencies: `katax-core ^1.6.7`, `katax-service-manager ^0.6.1`, `bcryptjs ^3`; `katax-*` in pnpm's
+      `minimumReleaseAgeExclude` (B12).
+- [ ] Tooling: ESLint config present, one test runner per repository, Vitest by default (T4); dead checks removed or wired (T5).
 
 ## Report
 

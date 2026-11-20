@@ -72,7 +72,7 @@ rejects `null`.
 | Server default | no schema default; `input.x ?? default` in the controller | |
 | Row / response nullable column | `T \| null` (never `?:`) | |
 
-- `.nullish()` needs katax-core >= 1.6.6 (older versions list it as required in `toJsonSchema()`).
+- `.nullish()` needs katax-core >= 1.6.6 (older versions list it as required in `toJsonSchema()`); use `^1.6.7`, which also fixes `asyncRefine` before `.transform()`/`.refine()` never running.
 - `undefined -> null` happens only at the controller -> repository boundary (`reward: input.reward ?? null`).
 - An UPDATE writes only keys that are `!== undefined`; never spread a validated object into SQL params.
 - The clearable list is per resource, so each one decides which of its fields `null` may erase.

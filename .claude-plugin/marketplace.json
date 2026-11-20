@@ -7,8 +7,8 @@
     {
       "name": "katax-skills",
       "source": "./katax-skills-plugin",
-      "description": "The katax standard for Node.js/TypeScript APIs: skills with references and copy-ready templates (katax-core, katax-cli 1.7.1, katax-service-manager, MCP + OAuth 2.1, concurrency, security, Redis rate limiting), the katax-project-builder agent (create, extend, audit and migrate APIs) and katax-audit hooks.",
-      "version": "1.2.0"
+      "description": "The katax standard for Node.js/TypeScript APIs: skills with references and copy-ready templates (katax-core 1.6.7, katax-cli 1.7.1, katax-service-manager, MCP + OAuth 2.1, concurrency, security, uploads, Redis rate limiting), the katax-project-builder agent (create, extend, audit and migrate APIs, also as /katax-new-api, /katax-add-resource, /katax-audit-api) and katax-audit hooks.",
+      "version": "1.5.0"
     }
   ]
 }

@@ -8,7 +8,10 @@ argument-hint: 'What are you validating? (body/query/params/patch/env/file/async
 
 Zod-style validation for TypeScript. Only runtime dependency: `date-fns`.
 
-**Version: 1.6.6** (`npm install katax-core`). 1.6.6 fixed `toJsonSchema()` for `nullable`/`nullish`/`integer`/`strict`/discriminated unions/recursive `lazy` — see "JSON Schema" below. Use `^1.6.6` in projects that expose schemas to OpenAPI or MCP.
+**Version: 1.6.7** (`npm install katax-core`). Use `^1.6.7` everywhere.
+
+- 1.6.7 (security fix): `parseAsync`/`safeParseAsync` run in one pass. Up to 1.6.6, an `asyncRefine` chained before `.transform()` or `.refine()` (and inside some wrappers: default, catch, brand, arrays, unions, lazy, preprocess) was never executed, so async checks such as membership or permissions silently passed. After upgrading, checks that were being skipped run for real: some requests that used to succeed now fail with 422, and the extra queries run. Add negative tests for every permission check.
+- 1.6.6 fixed `toJsonSchema()` for `nullable`/`nullish`/`integer`/`strict`/discriminated unions/recursive `lazy` — see "JSON Schema" below.
 
 House style for where validators live and how they connect to controllers/repositories: `katax-ecosystem` skill → `references/api-architecture.md`.
 

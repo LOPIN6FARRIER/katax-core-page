@@ -16,3 +16,14 @@ export interface IdRow {
 }
 
 // export interface HabitRow { id: string; user_id: string; name: string; reward: string | null; start_date: string | null; created_at: Date; updated_at: Date; }
+
+/** `SELECT pg_try_advisory_lock(...) AS locked` (migration runner). */
+export interface AdvisoryLockRow {
+  locked: boolean;
+}
+
+/** A row of `schema_migrations` (checksum is null for rows recorded by an older runner). */
+export interface AppliedMigrationRow {
+  name: string;
+  checksum: string | null;
+}

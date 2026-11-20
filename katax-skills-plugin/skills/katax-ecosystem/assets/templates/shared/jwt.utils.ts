@@ -11,6 +11,9 @@ import type { SignOptions } from 'jsonwebtoken';
  *   the code lets anyone who reads the repo forge tokens.
  * - `algorithms` is pinned on verify, and the `typ` claim stops a refresh
  *   token from being accepted as an access token (and vice versa).
+ * - The `aud` claim names the issuer's audience. Another token system in the
+ *   same deployment (MCP, a worker, an admin tool) signs its own audience, so
+ *   its tokens are rejected here even when someone sets the same secret.
  */
 export interface JwtPayload {
   userId: string;
@@ -23,6 +26,8 @@ interface TypedPayload extends JwtPayload {
 }
 
 const ALGORITHM = 'HS256' as const;
+// One value per token system; the MCP server uses its own (e.g. 'mcp').
+const AUDIENCE = 'app';
 const MIN_SECRET_LENGTH = 32;
 
 function secret(name: 'JWT_SECRET' | 'JWT_REFRESH_SECRET'): string {
@@ -40,6 +45,7 @@ function expiry(name: 'JWT_EXPIRES_IN' | 'JWT_REFRESH_EXPIRES_IN', fallback: str
 export function generateAccessToken(payload: JwtPayload): string {
   return jwt.sign({ ...payload, typ: 'access' }, secret('JWT_SECRET'), {
     algorithm: ALGORITHM,
+    audience: AUDIENCE,
     expiresIn: expiry('JWT_EXPIRES_IN', '15m')
   });
 }
@@ -47,13 +53,14 @@ export function generateAccessToken(payload: JwtPayload): string {
 export function generateRefreshToken(payload: JwtPayload): string {
   return jwt.sign({ ...payload, typ: 'refresh' }, secret('JWT_REFRESH_SECRET'), {
     algorithm: ALGORITHM,
+    audience: AUDIENCE,
     expiresIn: expiry('JWT_REFRESH_EXPIRES_IN', '7d')
   });
 }
 
 function verify(token: string, key: string, typ: TypedPayload['typ']): JwtPayload | null {
   try {
-    const decoded = jwt.verify(token, key, { algorithms: [ALGORITHM] }) as Partial<TypedPayload>;
+    const decoded = jwt.verify(token, key, { algorithms: [ALGORITHM], audience: AUDIENCE }) as Partial<TypedPayload>;
     if (decoded.typ !== typ || !decoded.userId) return null;
     return { userId: decoded.userId, email: decoded.email ?? '', role: decoded.role ?? 'user' };
   } catch {

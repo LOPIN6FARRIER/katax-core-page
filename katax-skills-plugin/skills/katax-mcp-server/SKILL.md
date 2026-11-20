@@ -30,8 +30,10 @@ An Express router at `/api/mcp` wraps `@modelcontextprotocol/sdk`'s `Server` + `
 
 - Use the stateless transport; the older in-memory session map doesn't survive restarts or multiple instances.
 - Set `MCP_BASE_URL` (or `PRODUCTION_URL`) in production: issuer, resource and every advertised endpoint are built from it; a `localhost` issuer breaks the connector.
-- Clients send `null` for optional args: `.nullish()` + `validateNormalized` (with `katax-core ^1.6.6`, so those fields aren't marked required).
+- Clients send `null` for optional args: `.nullish()` + `validateNormalized` (with `katax-core ^1.6.7`, so those fields aren't marked required and async permission checks actually run).
 - Don't reuse the app's own JWT secrets as-is for MCP tokens: set `MCP_JWT_SECRET`/`MCP_JWT_REFRESH_SECRET`, or derive them with HMAC from the app secrets, and put a `typ` claim in every token (see `oauth.md`).
+- Secrets end up equal in real deployments anyway, so MCP tokens also carry their own `aud` (e.g. `mcp`) and the app's carry another (e.g. `app`); each side verifies `audience` + `typ` + `algorithms` and rejects the other's tokens. Warn at boot when the secrets are equal. Adding the claim makes connected clients reconnect once.
+- A tool never does less checking than the REST endpoint it mirrors: same validator, same controller, same permission checks, no extra fields (visibility flags, free-form metadata) that REST doesn't accept.
 - Never let a client supply the user: keep `user_id` out of request schemas and pass `identity.userId` to the controller (older APIs strip it with `toPublicInputSchema`).
 - The REST validator schema and the MCP tool's `inputSchema` should be the **same object** (one `toJsonSchema()` call), not two hand-maintained schemas — if you find yourself hand-writing a second JSON Schema next to an existing katax-core validator, you're duplicating the anti-pattern documented in `well-known-and-antipattern.md`.
 - `/.well-known/*` routes must be registered at the domain root, not under `/api` — a common mistake that breaks discovery for compliant clients.

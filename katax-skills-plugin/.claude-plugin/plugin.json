@@ -1,7 +1,7 @@
 {
   "name": "katax-skills",
-  "description": "The katax standard for Node.js/TypeScript APIs (katax-core, katax-service-manager, katax-cli 1.7.1): skills with references and copy-ready templates (layers, null handling, repositories and transactions, race conditions, errors, sessions, security, Redis rate limiting, cron, MCP + OAuth 2.1), the katax-project-builder agent (create, extend, audit and migrate APIs) and hooks that run the katax-audit script after every TypeScript write and before finishing.",
-  "version": "1.2.0",
+  "description": "The katax standard for Node.js/TypeScript APIs (katax-core 1.6.7, katax-service-manager, katax-cli 1.7.1): skills with references and copy-ready templates (layers, null handling, repositories and transactions, race conditions, errors, sessions, security, uploads, Redis rate limiting, cron, MCP + OAuth 2.1), the katax-project-builder agent with /katax-new-api, /katax-add-resource and /katax-audit-api commands, and hooks that run the katax-audit script after every TypeScript write and before finishing.",
+  "version": "1.5.0",
   "author": {
     "name": "Vinicio Esparza"
   },
